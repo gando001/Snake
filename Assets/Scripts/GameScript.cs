@@ -7,57 +7,125 @@ public class GameScript : MonoBehaviour {
 	public GameObject apple;
 	public GameObject snake;
 
-	private GameObject[,] grid; 
+	// level values
+	public const int EMPTY = 0;
+	public const int FRAME = 1;
+	public const int SNAKE = 2;
+
+	// game logic
+	private int[,] grid; 
+	private ArrayList empty_spaces;
 	private int rows = 12;
 	private int cols = 25;
+	private int level = 0;
 	
 	// Use this for initialization
 	void Start () {
 
-		grid = new GameObject[rows,cols];
+		grid = new int[rows,cols];
+		empty_spaces = new ArrayList();
 
 		// create the level
 		createLevel();
 
 		// create the snake
-		snake = Instantiate(snake) as GameObject;
-		snake.GetComponent<SnakeScript>().setStartingPosition(-5,5); // randomize these
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
+		createSnake();
+
+		// create an apple
+		createApple();
 	}
 
+	public void updateGrid(int row, int col, int value)
+	{
+		grid[row, col] = value;
+	}
+
+	public void moveApple()
+	{
+		// get a random empty space from the array 0 - count
+		Vector2 space = getRandomEmptySpace();
+		apple.transform.position = new Vector3(space.y+apple.transform.parent.position.x, -space.x+apple.transform.parent.position.y, apple.transform.parent.position.z);
+	}
+
+	// Update is called once per frame
+	void Update () 
+	{
+		if (snake.GetComponent<SnakeScript>().isGameOver())
+		{
+			// game is over check whether the user won or lost
+		}
+
+	}           
+
+	// loads the level from a file
 	void createLevel()
 	{
-		Transform parent = GameObject.Find("1 - Middleground").transform;
+		// the level will be a child of the middle ground
+		Transform parent = GameObject.Find("Middleground").transform;
 		float x = (float)parent.position.x;
 		float y = (float)parent.position.y;
 		float z = (float)parent.position.z;
 
-		for (int i=0; i<rows; i++)
+		// read all of the lines into an array
+		string[] lines = System.IO.File.ReadAllLines(@"Assets/Levels/level_"+level+".txt");
+
+		int current_row = 0;
+		foreach(string l in lines)
 		{
-			frame = Instantiate(frame) as GameObject;
-			frame.transform.parent = parent;
-			frame.transform.position = new Vector3(x, i - y, z);
-			grid[i,0] = frame;
-
-			frame = Instantiate(frame) as GameObject;
-			frame.transform.parent = parent;
-			frame.transform.position = new Vector3(cols-1+x, i - y, z);
-			grid[i,cols-1] = frame;
-
-			if (i == 0 || i == rows-1)
+			// split the line by comma to get each grid component 
+			string[] line = l.Split(',');
+			int current_col = 0;
+			foreach(string c in line)
 			{
-				for (int j=0; j<cols; j++)
+				if (int.Parse(c) == FRAME)
 				{
+					// add a frame 
 					frame = Instantiate(frame) as GameObject;
 					frame.transform.parent = parent;
-					frame.transform.position = new Vector3(j + x, i - y, z);
-					grid[i,j] = frame;
+					frame.transform.position = new Vector3(current_col + x, current_row - y, z);
+					grid[current_row, current_col] = FRAME;
 				}
+				else
+				{
+					// store the empty space as a vector (row,col)
+					empty_spaces.Add(new Vector2(current_row, current_col));
+					grid[current_row, current_col] = EMPTY;
+				}
+				current_col++;
 			}
+			current_row++;
 		}
+	}
+
+	// creates the snake and chooses a starting position
+	void createSnake()
+	{
+		snake = Instantiate(snake) as GameObject;
+		snake.GetComponent<SnakeScript>().setGameScript(this);
+
+		// get a random empty space from the array 0 - count
+		Vector2 space = getRandomEmptySpace();
+
+		// need to check the space before setting the snake at it
+
+		// remove the space from empty spaces
+
+		// set the grid value to OPCCUPIED
+
+		snake.GetComponent<SnakeScript>().setStartingPosition((int)-space.x, (int)space.y); // randomize these
+	}
+
+	// creates the apple
+	void createApple()
+	{
+		apple = Instantiate(apple) as GameObject;
+		apple.transform.parent = GameObject.Find("Foreground").transform;
+		apple.name = "Apple";
+		moveApple();
+	}
+
+	Vector2 getRandomEmptySpace()
+	{
+		return (Vector2)empty_spaces[Random.Range(0, empty_spaces.Count)];
 	}
 }

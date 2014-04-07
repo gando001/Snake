@@ -22,18 +22,19 @@ public class SnakeScript : MonoBehaviour {
 	private int row;
 	private int col;
 	private bool eaten;
+	private GameScript gameScript;
 
 	// Use this for initialization
 	void Start () 
 	{
 		score = 0;
-		score_limit = 15;
+		score_limit = 50;
 		body_parts = 0;
 		gameOver = false;
 		lastUpdate = 0;
 
 		// set the snakes parent and position
-		parent = GameObject.Find("2 - Foreground").transform;	
+		parent = GameObject.Find("Foreground").transform;	
 		transform.parent = parent;
 		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
 
@@ -56,6 +57,17 @@ public class SnakeScript : MonoBehaviour {
 
 		// need to randomize the direction and initial starting value
 		right = true;
+	}
+
+	public bool isEaten()
+	{
+		return eaten;
+	}
+
+	public void setGameScript(GameScript gs)
+	{
+		// used to get access to the grid
+		gameScript = gs;
 	}
 	
 	// Update is called once per frame
@@ -106,24 +118,24 @@ public class SnakeScript : MonoBehaviour {
 		// FixedUpdate() is called at every fixed framerate frame. 
 		// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
 
-		if (Time.time - lastUpdate >= 0.5)
+		if (Time.time - lastUpdate >= speed)
 		{
 			if (body_parts > 0)
 			{
 				Vector3 last_pos = GameObject.Find("body"+body_parts).transform.position;
-				if (eaten && (Mathf.Abs(tail.position.x-last_pos.x) == 1 || Mathf.Abs(tail.position.y-last_pos.y) == 1))
+				if (isEaten() && (Mathf.Abs(tail.position.x-last_pos.x) == 1 || Mathf.Abs(tail.position.y-last_pos.y) == 1))
 				{
-					// don't update the tails position this time to allow for new body part to be inserted
+					// don't update the tails position this time to allow for new body part to be inserted before it in the snake
 					eaten = false;
 				}
-				else if (eaten && body_parts > 1)
+				else if (isEaten() && body_parts > 1)
 				{
-					// adding first body part - make tail follow the new body part
+					// set the tail to the previous last bodies position to keep following the body it already was before eating
 					tail.position = GameObject.Find("body"+(body_parts-1)).transform.position;
 				}
 				else
 				{
-					// set the tail to the previous last bodies position
+					// adding first body part - make tail follow the new body part
 					tail.position = GameObject.Find("body"+body_parts).transform.position;
 				}
 
@@ -189,7 +201,7 @@ public class SnakeScript : MonoBehaviour {
 		score++;
 		if (score == score_limit)
 		{
-			// game over the user has passed this level
+			// game won the user has passed this level
 			gameOver = true;
 		}
 		else
@@ -201,6 +213,7 @@ public class SnakeScript : MonoBehaviour {
 			body.name = "body"+body_parts;
 			body.position = transform.position; // set the position to the head
 			eaten = true;
+			gameScript.moveApple();
 		}
 	}
 }
