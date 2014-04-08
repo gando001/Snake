@@ -132,11 +132,13 @@ public class SnakeScript : MonoBehaviour {
 				{
 					// set the tail to the previous last bodies position to keep following the body it already was before eating
 					tail.position = GameObject.Find("body"+(body_parts-1)).transform.position;
+					updateGridFromTail();
 				}
 				else
 				{
 					// adding first body part - make tail follow the new body part
 					tail.position = GameObject.Find("body"+body_parts).transform.position;
+					updateGridFromTail();
 				}
 
 				// set the position of each body to the body before it
@@ -156,6 +158,7 @@ public class SnakeScript : MonoBehaviour {
 			{
 				// set the tail to the heads position - no bodies tail follows head
 				tail.position = transform.position;
+				updateGridFromTail();
 			}
 
 			// continue in the same direction
@@ -171,6 +174,9 @@ public class SnakeScript : MonoBehaviour {
 			// update the head position
 			transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y);
 
+			// update the grid
+			gameScript.updateGrid(row, col, GameScript.SNAKE);
+
 			lastUpdate = Time.time;
 		}
 	}
@@ -181,18 +187,24 @@ public class SnakeScript : MonoBehaviour {
 		// collider marked as a "Trigger" is touching this object collider.
 
 		// determine the other collider
-		if (otherCollider.gameObject.name == "Frame" || otherCollider.gameObject.name == "Body") 
+		if (otherCollider.gameObject.name == "Frame") 
 		{
 			// game over as snake hit the frame or itself
 			gameOver = true;
 		}
 		else if (otherCollider.gameObject.name == "Apple")
 		{
-			// move the apple
-			//Destroy(otherCollider.gameObject);
-
 			// increment the snake
 			incrementSnake();
+		}
+	}
+
+	void OnDestroy()
+	{
+		Destroy(GameObject.Find("tail"));
+		for (int i=1; i<=body_parts; i++)
+		{
+			Destroy(GameObject.Find("body"+i));
 		}
 	}
 
@@ -215,5 +227,13 @@ public class SnakeScript : MonoBehaviour {
 			eaten = true;
 			gameScript.moveApple();
 		}
+	}
+
+	void updateGridFromTail()
+	{
+		// update the grid based on the tail position
+		int row = (int)(tail.position.y-transform.parent.position.y);
+		int col = (int)(tail.position.x-transform.parent.position.x);
+		gameScript.updateGrid(row, col, GameScript.EMPTY);
 	}
 }

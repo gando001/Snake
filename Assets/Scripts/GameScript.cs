@@ -37,14 +37,29 @@ public class GameScript : MonoBehaviour {
 
 	public void updateGrid(int row, int col, int value)
 	{
-		grid[row, col] = value;
+		if (value == SNAKE)
+		{
+			// update the snake head position in the grid
+			grid[row, col] = SNAKE;
+
+			// remove the empty space
+			empty_spaces.Remove(new Vector2(row, col));
+		}
+		else
+		{
+			// update the tail position
+			grid[row, col] = EMPTY;
+
+			// store the empty space as a vector (row,col)
+			empty_spaces.Add(new Vector2(row, col));
+		}
 	}
 
 	public void moveApple()
 	{
 		// get a random empty space from the array 0 - count
 		Vector2 space = getRandomEmptySpace();
-		apple.transform.position = new Vector3(space.y+apple.transform.parent.position.x, -space.x+apple.transform.parent.position.y, apple.transform.parent.position.z);
+		apple.transform.position = new Vector3(space.y+apple.transform.parent.position.x, space.x+apple.transform.parent.position.y, apple.transform.parent.position.z);
 	}
 
 	// Update is called once per frame
@@ -53,8 +68,9 @@ public class GameScript : MonoBehaviour {
 		if (snake.GetComponent<SnakeScript>().isGameOver())
 		{
 			// game is over check whether the user won or lost
+			Destroy(snake);
+			Destroy(this);
 		}
-
 	}           
 
 	// loads the level from a file
@@ -82,7 +98,8 @@ public class GameScript : MonoBehaviour {
 					// add a frame 
 					frame = Instantiate(frame) as GameObject;
 					frame.transform.parent = parent;
-					frame.transform.position = new Vector3(current_col + x, current_row - y, z);
+					frame.transform.position = new Vector3(current_col + x, current_row + y, z);
+					frame.name = "Frame";
 					grid[current_row, current_col] = FRAME;
 				}
 				else
@@ -112,7 +129,7 @@ public class GameScript : MonoBehaviour {
 
 		// set the grid value to OPCCUPIED
 
-		snake.GetComponent<SnakeScript>().setStartingPosition((int)-space.x, (int)space.y); // randomize these
+		snake.GetComponent<SnakeScript>().setStartingPosition((int)space.x, (int)space.y); // randomize these
 	}
 
 	// creates the apple
