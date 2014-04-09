@@ -11,6 +11,7 @@ public class GameScript : MonoBehaviour {
 	public const int EMPTY = 0;
 	public const int FRAME = 1;
 	public const int SNAKE = 2;
+	public int DIRECTION;
 
 	// game logic
 	private int[,] grid; 
@@ -120,16 +121,62 @@ public class GameScript : MonoBehaviour {
 		snake = Instantiate(snake) as GameObject;
 		snake.GetComponent<SnakeScript>().setGameScript(this);
 
-		// get a random empty space from the array 0 - count
+		// choose a random direction
+		DIRECTION = Random.Range(1,5);
+
+		// find a valid space based on the direction
+		bool valid = false;
 		Vector2 space = getRandomEmptySpace();
+		int index = 0;
+		while (!valid)
+		{
+			// need to check the space for the tail before setting the snake to it
+			if (DIRECTION == 1)
+			{
+				// left - the column on the right needs to be empty too
+				index = empty_spaces.IndexOf(new Vector2(space.x, space.y+1));
+				if (index != -1)
+					valid = true;
+			}
+			else if (DIRECTION == 2)
+			{
+				// right - the column on the left needs to be empty too
+				index = empty_spaces.IndexOf(new Vector2(space.x, space.y-1));
+				if (index != -1)
+					valid = true;
+			}
+			else if (DIRECTION == 3)
+			{
+				// up - the row down needs to be empty too
+				index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
+				if (index != -1)
+					valid = true;
+			}
+			else
+			{
+				// down - the row up needs to be empty too
+				index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
+				if (index != -1)
+					valid = true;
+			}
 
-		// need to check the space before setting the snake at it
+			if (!valid)
+			{
+				// get a random empty space from the array 0 - count
+				space = getRandomEmptySpace();
+			}
+		}
 
-		// remove the space from empty spaces
+		// found a valid tail space
+		Vector2 tail_space = (Vector2)empty_spaces[index];
+		
+		// remove the valid spaces from empty spaces
+		empty_spaces.Remove(space);
+		empty_spaces.Remove(tail_space);
 
-		// set the grid value to OPCCUPIED
-
-		snake.GetComponent<SnakeScript>().setStartingPosition((int)space.x, (int)space.y); // randomize these
+		// set the snake head and tail to the spaces
+		snake.GetComponent<SnakeScript>().setHeadStartingPosition((int)space.x, (int)space.y);
+		snake.GetComponent<SnakeScript>().setTailStartingPosition((int)tail_space.x, (int)tail_space.y);
 	}
 
 	// creates the apple

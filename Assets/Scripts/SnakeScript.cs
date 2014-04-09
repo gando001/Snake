@@ -32,17 +32,6 @@ public class SnakeScript : MonoBehaviour {
 		body_parts = 0;
 		gameOver = false;
 		lastUpdate = 0;
-
-		// set the snakes parent and position
-		parent = GameObject.Find("Foreground").transform;	
-		transform.parent = parent;
-		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
-
-		// create the tail
-		tail = Instantiate(tail) as Transform;
-		tail.parent = parent;
-		tail.name = "tail";
-		tail.position = transform.position;
 	}
 
 	public bool isGameOver()
@@ -50,13 +39,33 @@ public class SnakeScript : MonoBehaviour {
 		return gameOver;
 	}
 	
-	public void setStartingPosition(int r, int c)
+	public void setHeadStartingPosition(int r, int c)
 	{
 		row = r;
 		col = c;
 
-		// need to randomize the direction and initial starting value
-		right = true;
+		if (gameScript.DIRECTION == 1)
+			left = true;
+		else if (gameScript.DIRECTION == 2)
+			right = true;
+		else if (gameScript.DIRECTION == 3)
+			up = true;
+		else
+			down = true;
+
+		// set the snakes parent and position
+		parent = GameObject.Find("Foreground").transform;	
+		transform.parent = parent;
+		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
+	}
+
+	public void setTailStartingPosition(int r, int c)
+	{
+		// create the tail
+		tail = Instantiate(tail) as Transform;
+		tail.parent = parent;
+		tail.name = "tail";
+		tail.position = new Vector3(c+transform.parent.position.x, r+transform.parent.position.y, (float)parent.position.z);
 	}
 
 	public bool isEaten()
@@ -120,39 +129,28 @@ public class SnakeScript : MonoBehaviour {
 
 		if (Time.time - lastUpdate >= speed)
 		{
-			if (body_parts > 0)
+			if (isEaten())
 			{
-				Vector3 last_pos = GameObject.Find("body"+body_parts).transform.position;
-				if (isEaten() && (Mathf.Abs(tail.position.x-last_pos.x) == 1 || Mathf.Abs(tail.position.y-last_pos.y) == 1))
+				// create the new body at the heads position
+				createBody();
+
+				// do not move the snake
+				eaten = false;
+			}
+			else if (body_parts > 0)
+			{
+				// make tail follow the first body part
+				tail.position = GameObject.Find("body1").transform.position;
+				updateGridFromTail();
+
+				// set the position of each body to the body in front of it
+				for (int i=1; i<body_parts; i++)
 				{
-					// don't update the tails position this time to allow for new body part to be inserted before it in the snake
-					eaten = false;
-				}
-				else if (isEaten() && body_parts > 1)
-				{
-					// set the tail to the previous last bodies position to keep following the body it already was before eating
-					tail.position = GameObject.Find("body"+(body_parts-1)).transform.position;
-					updateGridFromTail();
-				}
-				else
-				{
-					// adding first body part - make tail follow the new body part
-					tail.position = GameObject.Find("body"+body_parts).transform.position;
-					updateGridFromTail();
+					GameObject.Find("body"+i).transform.position = GameObject.Find("body"+(i+1)).transform.position; 
 				}
 
-				// set the position of each body to the body before it
-				int i = body_parts;
-				if (eaten)
-					i--; // skip the last body
-				while (i>1)
-				{
-					GameObject.Find("body"+i).transform.position = GameObject.Find("body"+(i-1)).transform.position; 
-					i--;
-				}
-
-				// set the first body to the heads position
-				GameObject.Find("body1").transform.position = transform.position;
+				// set the lastest body added to the heads position
+				GameObject.Find("body"+body_parts).transform.position = transform.position;
 			}
 			else
 			{
@@ -187,7 +185,7 @@ public class SnakeScript : MonoBehaviour {
 		// collider marked as a "Trigger" is touching this object collider.
 
 		// determine the other collider
-		if (otherCollider.gameObject.name == "Frame") 
+		if (otherCollider.gameObject.name == "Frame" || otherCollider.gameObject.name.StartsWith("body") || otherCollider.gameObject.name == "tail") 
 		{
 			// game over as snake hit the frame or itself
 			gameOver = true;
@@ -220,13 +218,18 @@ public class SnakeScript : MonoBehaviour {
 		{
 			// add a new body to the snake
 			body_parts++;
-			body = Instantiate(body) as Transform;
-			body.parent = parent;
-			body.name = "body"+body_parts;
-			body.position = transform.position; // set the position to the head
 			eaten = true;
 			gameScript.moveApple();
 		}
+	}
+
+	void createBody()
+	{
+		// create a new body prefab
+		body = Instantiate(body) as Transform;
+		body.parent = parent;
+		body.name = "body"+body_parts;
+		body.position = transform.position;
 	}
 
 	void updateGridFromTail()
