@@ -13,6 +13,12 @@ public class GameScript : MonoBehaviour {
 	public const int SNAKE = 2;
 	public int DIRECTION;
 
+	// camera and scale values
+	public const float CAM_WIDTH = 1017;
+	public const float CAM_HEIGHT = 481;
+	public float SCALE_X;
+	public float SCALE_Y;
+
 	// game logic
 	private int[,] grid; 
 	private ArrayList empty_spaces;
@@ -25,6 +31,12 @@ public class GameScript : MonoBehaviour {
 
 		grid = new int[rows,cols];
 		empty_spaces = new ArrayList();
+
+		// set up the scale
+		SCALE_X = Screen.width/CAM_WIDTH;
+		SCALE_Y = Screen.height/CAM_HEIGHT;
+
+		// create the background image
 
 		// create the level
 		createLevel();
@@ -60,7 +72,12 @@ public class GameScript : MonoBehaviour {
 	{
 		// get a random empty space from the array 0 - count
 		Vector2 space = getRandomEmptySpace();
-		apple.transform.position = new Vector3(space.y+apple.transform.parent.position.x, space.x+apple.transform.parent.position.y, apple.transform.parent.position.z);
+		apple.transform.position = this.getScaledPostion((space.y+apple.transform.parent.position.x), (space.x+apple.transform.parent.position.y), apple.transform.parent.position.z);
+	}
+
+	public Vector3 getScaledPostion(float x, float y, float z)
+	{
+		return new Vector3(x*SCALE_X,y*SCALE_Y,z);
 	}
 
 	// Update is called once per frame
@@ -84,8 +101,9 @@ public class GameScript : MonoBehaviour {
 		float z = (float)parent.position.z;
 
 		// read all of the lines into an array
-		string[] lines = System.IO.File.ReadAllLines(@"Assets/Levels/level_"+level+".txt");
-
+		TextAsset level_file = (TextAsset)Resources.Load("Levels/level_"+level);
+		string[] lines = level_file.text.Split("\n"[0]);
+	
 		int current_row = 0;
 		foreach(string l in lines)
 		{
@@ -99,7 +117,8 @@ public class GameScript : MonoBehaviour {
 					// add a frame 
 					frame = Instantiate(frame) as GameObject;
 					frame.transform.parent = parent;
-					frame.transform.position = new Vector3(current_col + x, current_row + y, z);
+					frame.transform.localScale = this.getScaledPostion(0.25f, 0.25f, 0);
+					frame.transform.position =  this.getScaledPostion(current_col + x, current_row + y, z);
 					frame.name = "Frame";
 					grid[current_row, current_col] = FRAME;
 				}

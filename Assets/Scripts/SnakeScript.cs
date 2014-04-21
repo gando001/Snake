@@ -56,7 +56,8 @@ public class SnakeScript : MonoBehaviour {
 		// set the snakes parent and position
 		parent = GameObject.Find("Foreground").transform;	
 		transform.parent = parent;
-		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
+		transform.position = gameScript.getScaledPostion(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
+		transform.localScale = gameScript.getScaledPostion(transform.localScale.x, transform.localScale.y, transform.localScale.z);
 	}
 
 	public void setTailStartingPosition(int r, int c)
@@ -65,7 +66,8 @@ public class SnakeScript : MonoBehaviour {
 		tail = Instantiate(tail) as Transform;
 		tail.parent = parent;
 		tail.name = "tail";
-		tail.position = new Vector3(c+transform.parent.position.x, r+transform.parent.position.y, (float)parent.position.z);
+		tail.position = gameScript.getScaledPostion(c+transform.parent.position.x, r+transform.parent.position.y, (float)parent.position.z);
+		tail.localScale = gameScript.getScaledPostion(tail.localScale.x, tail.localScale.y, tail.localScale.z);
 	}
 
 	public bool isEaten()
@@ -170,7 +172,7 @@ public class SnakeScript : MonoBehaviour {
 				row--;
 
 			// update the head position
-			transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y);
+			transform.position = gameScript.getScaledPostion(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
 
 			// update the grid
 			gameScript.updateGrid(row, col, GameScript.SNAKE);
@@ -230,6 +232,7 @@ public class SnakeScript : MonoBehaviour {
 		body.parent = parent;
 		body.name = "body"+body_parts;
 		body.position = transform.position;
+		body.localScale = gameScript.getScaledPostion(body.localScale.x, body.localScale.y, body.localScale.z);
 	}
 
 	void updateGridFromTail()
