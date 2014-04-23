@@ -13,16 +13,10 @@ public class GameScript : MonoBehaviour {
 	public const int FRAME = 1;
 	public const int SNAKE = 2;
 
-	// camera and scale values
-	private const float CAM_WIDTH = 1017;
-	private const float CAM_HEIGHT = 480;
-	private float scale_x;
-	private float scale_y;
-
 	// game logic
 	private int[,] grid; 
 	private ArrayList empty_spaces;
-	private const int rows = 11;
+	private const int rows = 13;
 	private const int cols = 25;
 	private int level = 0;
 	private int direction;
@@ -59,13 +53,13 @@ public class GameScript : MonoBehaviour {
 	// Returns the given position scaled to the current screens width and height
 	public Vector3 getScaledPostion(float x, float y, float z)
 	{
-		return new Vector3(x*scale_x,y*scale_y,z);
+		return new Vector3(x,y,z);
 	}
 
 	// Returns the column and row for the given scaled position
 	public Vector2 getColAndRow(float x, float y)
 	{
-		return new Vector2(x/scale_x, y/scale_y);
+		return new Vector2(x, y);
 	}
 
 	public bool isGridEmpty(int row, int col)
@@ -84,13 +78,18 @@ public class GameScript : MonoBehaviour {
 		grid = new int[rows,cols];
 		empty_spaces = new ArrayList();
 		
-		// set up the scale
-		scale_x = Screen.width/CAM_WIDTH;
-		scale_y = Screen.height/CAM_HEIGHT;
-
-		//scale_x = CAM_WIDTH/Screen.width;
-	//	GameObject.Find("Main Camera").transform.camera.aspect = CAM_WIDTH/CAM_HEIGHT;
-		Debug.Log(Screen.width+":"+Screen.height+":"+GameObject.Find("Main Camera").transform.camera.aspect);
+		// set up the orthographic camera size based on the screen resolution
+		float res = (float)Screen.width/Screen.height;
+		float size = 0;
+		if (res < 1.4)
+			size = 9.5f;
+		else if (res < 1.6)
+			size = 8.5f;
+		else if (res < 1.7)
+			size = 7.9f;
+		else
+			size = 7.45f;
+		Camera.main.orthographicSize = size;
 		
 		// create the background image
 		createBackground();
