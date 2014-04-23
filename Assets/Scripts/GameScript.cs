@@ -3,6 +3,7 @@ using System.Collections;
 
 public class GameScript : MonoBehaviour {
 
+	public GameObject background;
 	public GameObject frame;
 	public GameObject apple;
 	public GameObject snake;
@@ -11,42 +12,20 @@ public class GameScript : MonoBehaviour {
 	public const int EMPTY = 0;
 	public const int FRAME = 1;
 	public const int SNAKE = 2;
-	public int DIRECTION;
 
 	// camera and scale values
-	public const float CAM_WIDTH = 1017;
-	public const float CAM_HEIGHT = 481;
-	public float SCALE_X;
-	public float SCALE_Y;
+	private const float CAM_WIDTH = 1017;
+	private const float CAM_HEIGHT = 480;
+	private float scale_x;
+	private float scale_y;
 
 	// game logic
 	private int[,] grid; 
 	private ArrayList empty_spaces;
-	private int rows = 12;
-	private int cols = 25;
+	private const int rows = 11;
+	private const int cols = 25;
 	private int level = 0;
-	
-	// Use this for initialization
-	void Start () {
-
-		grid = new int[rows,cols];
-		empty_spaces = new ArrayList();
-
-		// set up the scale
-		SCALE_X = Screen.width/CAM_WIDTH;
-		SCALE_Y = Screen.height/CAM_HEIGHT;
-
-		// create the background image
-
-		// create the level
-		createLevel();
-
-		// create the snake
-		createSnake();
-
-		// create an apple
-		createApple();
-	}
+	private int direction;
 
 	public void updateGrid(int row, int col, int value)
 	{
@@ -55,15 +34,15 @@ public class GameScript : MonoBehaviour {
 			// update the snake head position in the grid
 			grid[row, col] = SNAKE;
 
-			// remove the empty space
+			// remove the empty space as it is no longer empty
 			empty_spaces.Remove(new Vector2(row, col));
 		}
 		else
 		{
-			// update the tail position
+			// update the grid with a new empty position as the tail has moved
 			grid[row, col] = EMPTY;
 
-			// store the empty space as a vector (row,col)
+			// store the empty space as a vector (row,col) since the tail moved
 			empty_spaces.Add(new Vector2(row, col));
 		}
 	}
@@ -72,12 +51,58 @@ public class GameScript : MonoBehaviour {
 	{
 		// get a random empty space from the array 0 - count
 		Vector2 space = getRandomEmptySpace();
+
+		// set the apple to the random position
 		apple.transform.position = this.getScaledPostion((space.y+apple.transform.parent.position.x), (space.x+apple.transform.parent.position.y), apple.transform.parent.position.z);
 	}
 
+	// Returns the given position scaled to the current screens width and height
 	public Vector3 getScaledPostion(float x, float y, float z)
 	{
-		return new Vector3(x*SCALE_X,y*SCALE_Y,z);
+		return new Vector3(x*scale_x,y*scale_y,z);
+	}
+
+	// Returns the column and row for the given scaled position
+	public Vector2 getColAndRow(float x, float y)
+	{
+		return new Vector2(x/scale_x, y/scale_y);
+	}
+
+	public bool isGridEmpty(int row, int col)
+	{
+		if (grid[row,col] == EMPTY)
+			return true;
+		return false;
+	}
+
+
+
+	// Use this for initialization
+	void Start () {
+		
+		// create the game grid
+		grid = new int[rows,cols];
+		empty_spaces = new ArrayList();
+		
+		// set up the scale
+		scale_x = Screen.width/CAM_WIDTH;
+		scale_y = Screen.height/CAM_HEIGHT;
+
+		//scale_x = CAM_WIDTH/Screen.width;
+	//	GameObject.Find("Main Camera").transform.camera.aspect = CAM_WIDTH/CAM_HEIGHT;
+		Debug.Log(Screen.width+":"+Screen.height+":"+GameObject.Find("Main Camera").transform.camera.aspect);
+		
+		// create the background image
+		createBackground();
+		
+		// create the level
+		createLevel();
+		
+		// create the snake
+		createSnake();
+		
+		// create an apple
+		createApple();
 	}
 
 	// Update is called once per frame
@@ -85,9 +110,17 @@ public class GameScript : MonoBehaviour {
 	{
 		if (snake.GetComponent<SnakeScript>().isGameOver())
 		{
-			// game is over check whether the user won or lost
-			Destroy(snake);
-			Destroy(this);
+			// game is over so check whether the user won or lost
+			if (snake.GetComponent<SnakeScript>().isLevelPassed())
+			{
+				// user has passed this level
+			}
+			else
+			{
+				// user failed this level
+
+				// display the flashing snake for 3 seconds then display the menu options
+			}
 		}
 	}           
 
@@ -141,7 +174,7 @@ public class GameScript : MonoBehaviour {
 		snake.GetComponent<SnakeScript>().setGameScript(this);
 
 		// choose a random direction
-		DIRECTION = Random.Range(1,5);
+		direction = Random.Range(1,5);
 
 		// find a valid space based on the direction
 		bool valid = false;
@@ -150,21 +183,21 @@ public class GameScript : MonoBehaviour {
 		while (!valid)
 		{
 			// need to check the space for the tail before setting the snake to it
-			if (DIRECTION == 1)
+			if (direction == 1)
 			{
 				// left - the column on the right needs to be empty too
 				index = empty_spaces.IndexOf(new Vector2(space.x, space.y+1));
 				if (index != -1)
 					valid = true;
 			}
-			else if (DIRECTION == 2)
+			else if (direction == 2)
 			{
 				// right - the column on the left needs to be empty too
 				index = empty_spaces.IndexOf(new Vector2(space.x, space.y-1));
 				if (index != -1)
 					valid = true;
 			}
-			else if (DIRECTION == 3)
+			else if (direction == 3)
 			{
 				// up - the row down needs to be empty too
 				index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
@@ -193,8 +226,12 @@ public class GameScript : MonoBehaviour {
 		empty_spaces.Remove(space);
 		empty_spaces.Remove(tail_space);
 
+		// update the grid
+		updateGrid((int)space.x, (int)space.y, GameScript.SNAKE);
+		updateGrid((int)tail_space.x, (int)tail_space.y, GameScript.SNAKE);
+
 		// set the snake head and tail to the spaces
-		snake.GetComponent<SnakeScript>().setHeadStartingPosition((int)space.x, (int)space.y);
+		snake.GetComponent<SnakeScript>().setHeadStartingPosition((int)space.x, (int)space.y, direction);
 		snake.GetComponent<SnakeScript>().setTailStartingPosition((int)tail_space.x, (int)tail_space.y);
 	}
 
@@ -207,8 +244,28 @@ public class GameScript : MonoBehaviour {
 		moveApple();
 	}
 
+	// returns a random empty space from the grid
 	Vector2 getRandomEmptySpace()
 	{
 		return (Vector2)empty_spaces[Random.Range(0, empty_spaces.Count)];
+	}
+
+	// creates the background image
+	void createBackground()
+	{
+		// make a 4x1 grid of the background image
+		Transform parent = GameObject.Find("Background").transform;
+		float x = parent.position.x - 7.5f;
+		float y = parent.position.y;
+		float z = parent.position.z;
+		
+		for (int i=0; i<3; i++)
+		{
+			background = Instantiate(background) as GameObject;
+			background.transform.parent = parent;
+			background.transform.localScale = this.getScaledPostion(1.5f, 2.75f, 0);
+			background.transform.position =  this.getScaledPostion(x, y, z);
+			x += 7.5f;
+		}
 	}
 }
