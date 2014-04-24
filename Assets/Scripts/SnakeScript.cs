@@ -10,9 +10,8 @@ public class SnakeScript : MonoBehaviour {
 
 	// snake logic
 	private int score;
-	private int score_limit;
+	private int body_limit;
 	private int body_parts;
-	private bool gameOver;
 	private bool levelPassed;
 	private bool left;
 	private bool right;
@@ -63,11 +62,6 @@ public class SnakeScript : MonoBehaviour {
 		gameScript = gs;
 	}
 
-	public bool isGameOver()
-	{
-		return gameOver;
-	}
-
 	public bool isLevelPassed()
 	{
 		return levelPassed;
@@ -78,15 +72,19 @@ public class SnakeScript : MonoBehaviour {
 		return eaten;
 	}
 
+	public int getScore()
+	{
+		return score;
+	}
+
 
 
 	// Use this for initialization
 	void Start () 
 	{
 		score = 0;
-		score_limit = 50;
+		body_limit = 50;
 		body_parts = 0;
-		gameOver = false;
 		lastUpdate = 0;
 		bodies = new ArrayList();
 	}
@@ -203,7 +201,7 @@ public class SnakeScript : MonoBehaviour {
 		// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
 
 		// update when it is time to and the game isn't over
-		if (Time.time - lastUpdate >= speed && !isGameOver())
+		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver())
 		{
 			// continue in the same direction
 			if (left)
@@ -257,8 +255,11 @@ public class SnakeScript : MonoBehaviour {
 			else
 			{
 				// snake tried to move to a non-empty cell
-				gameOver = true;
+				gameScript.setGameOver(true);
 				levelPassed = false;
+
+				// vibrate the device
+				Handheld.Vibrate ();
 
 				// flash the snake
 				InvokeRepeating("flashSnake", 0, 0.25f);
@@ -305,12 +306,12 @@ public class SnakeScript : MonoBehaviour {
 
 	void incrementSnake()
 	{
-		score++;
+		score += 10;
 		body_parts++;
-		if (body_parts == score_limit)
+		if (body_parts == body_limit)
 		{
 			// game won the user has passed this level
-			gameOver = true;
+			gameScript.setGameOver(true);
 			levelPassed = true;
 		}
 		else

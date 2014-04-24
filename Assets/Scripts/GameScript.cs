@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class GameScript : MonoBehaviour {
-
+	
 	public GameObject background;
 	public GameObject frame;
 	public GameObject apple;
@@ -16,10 +16,19 @@ public class GameScript : MonoBehaviour {
 	// game logic
 	private int[,] grid; 
 	private ArrayList empty_spaces;
+	private ArrayList frames;
 	private const int rows = 13;
 	private const int cols = 25;
-	private int level = 0;
+	private int level;
 	private int direction;
+	private bool userWin;
+	private bool gameOver;
+
+	// HUD variables
+	private float hudWidth;
+	private float hudX;
+	private float hudHeight;
+	private float hudY;
 
 	public void updateGrid(int row, int col, int value)
 	{
@@ -69,59 +78,83 @@ public class GameScript : MonoBehaviour {
 		return false;
 	}
 
+	public void setGameOver(bool v)
+	{
+		gameOver = v;
+	}
+
+	public bool isGameOver()
+	{
+		return gameOver;
+	}
+
 
 
 	// Use this for initialization
 	void Start () {
-		
+
 		// create the game grid
 		grid = new int[rows,cols];
 		empty_spaces = new ArrayList();
+		frames = new ArrayList();
+		gameOver = false;
+		userWin = false;
+
+		// get the current level from the manager
+		level = GameObject.Find("GameManager").GetComponent<GameManager>().getLevel();
 		
-		// set up the orthographic camera size based on the screen resolution
-		float res = (float)Screen.width/Screen.height;
-		float size = 0;
-		if (res < 1.4)
-			size = 9.5f;
-		else if (res < 1.6)
-			size = 8.5f;
-		else if (res < 1.7)
-			size = 7.9f;
-		else
-			size = 7.45f;
-		Camera.main.orthographicSize = size;
-		
+		// HUD values
+		hudWidth = Screen.width/4;
+		hudX = hudWidth/2;
+		hudY = GameObject.Find("Middleground").transform.position.y+rows;
+		hudHeight = Screen.height/rows;
+
 		// create the background image
 		createBackground();
-		
+
 		// create the level
 		createLevel();
 		
 		// create the snake
-		createSnake();
+		snake = Instantiate(snake) as GameObject;
+		snake.GetComponent<SnakeScript>().setGameScript(this);
+		setUpSnake();
 		
-		// create an apple
-		createApple();
+		// create the apple
+		apple = Instantiate(apple) as GameObject;
+		apple.transform.parent = GameObject.Find("Foreground").transform;
+		apple.name = "Apple";
+		moveApple();
 	}
 
 	// Update is called once per frame
 	void Update () 
 	{
-		if (snake.GetComponent<SnakeScript>().isGameOver())
+		if (isGameOver())
 		{
 			// game is over so check whether the user won or lost
 			if (snake.GetComponent<SnakeScript>().isLevelPassed())
 			{
 				// user has passed this level
+				userWin = true;
 			}
 			else
 			{
 				// user failed this level
+				userWin = false;
 
-				// display the flashing snake for 3 seconds then display the menu options
 			}
 		}
-	}           
+	}    
+
+	void OnGUI ()
+	{
+		// draws the HUD
+		drawHUD();
+
+		// draw the menu
+		drawMenu();
+	}
 
 	// loads the level from a file
 	void createLevel()
@@ -153,6 +186,7 @@ public class GameScript : MonoBehaviour {
 					frame.transform.position =  this.getScaledPostion(current_col + x, current_row + y, z);
 					frame.name = "Frame";
 					grid[current_row, current_col] = FRAME;
+					frames.Add(frame);
 				}
 				else
 				{
@@ -166,12 +200,9 @@ public class GameScript : MonoBehaviour {
 		}
 	}
 
-	// creates the snake and chooses a starting position
-	void createSnake()
+	// sets up the snake at a starting position
+	void setUpSnake()
 	{
-		snake = Instantiate(snake) as GameObject;
-		snake.GetComponent<SnakeScript>().setGameScript(this);
-
 		// choose a random direction
 		direction = Random.Range(1,5);
 
@@ -234,15 +265,6 @@ public class GameScript : MonoBehaviour {
 		snake.GetComponent<SnakeScript>().setTailStartingPosition((int)tail_space.x, (int)tail_space.y);
 	}
 
-	// creates the apple
-	void createApple()
-	{
-		apple = Instantiate(apple) as GameObject;
-		apple.transform.parent = GameObject.Find("Foreground").transform;
-		apple.name = "Apple";
-		moveApple();
-	}
-
 	// returns a random empty space from the grid
 	Vector2 getRandomEmptySpace()
 	{
@@ -262,9 +284,58 @@ public class GameScript : MonoBehaviour {
 		{
 			background = Instantiate(background) as GameObject;
 			background.transform.parent = parent;
+			background.transform.name = "background"+(i+1);
 			background.transform.localScale = this.getScaledPostion(1.5f, 2.75f, 0);
 			background.transform.position =  this.getScaledPostion(x, y, z);
 			x += 7.5f;
+		}
+	}
+
+	// draws the HUD
+	void drawHUD()
+	{
+		GUI.skin.box.alignment = TextAnchor.MiddleCenter;
+		GUI.skin.box.fontSize = 18;
+
+		// draw the level box in the centre left
+		GUI.Box(new Rect(hudX,hudY,hudWidth,hudHeight), "Level "+level);
+
+		// draw the bonus pick up box in the centre
+		GUI.Box(new Rect(hudX+hudWidth,hudY,hudWidth,hudHeight), "");
+
+		// draw the score box in the centre right
+		GUI.Box(new Rect(hudX+(2*hudWidth),hudY,hudWidth,hudHeight), "Score "+snake.GetComponent<SnakeScript>().getScore());
+	}
+
+	// draws the menu once the level has finished
+	void drawMenu()
+	{
+		if (isGameOver())
+		{
+			if (userWin)
+			{
+				// display the scoreboard
+			}
+			else
+			{
+				// give the user options to retry or go to the main menu
+				float x = Screen.width/2;
+				float y = Screen.height/2;
+				float w = hudWidth/2;
+				float h = hudHeight;
+			
+				if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
+				{
+					// Reload the level
+					Application.LoadLevel("level");
+				}
+				
+				if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
+				{
+					// Reload the level
+					Application.LoadLevel("Menu");
+				}
+			}
 		}
 	}
 }
