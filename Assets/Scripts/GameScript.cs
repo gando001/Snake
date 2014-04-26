@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Xml;
+using System.IO;
 
 public class GameScript : MonoBehaviour {
 	
@@ -13,6 +15,16 @@ public class GameScript : MonoBehaviour {
 	public const int FRAME = 1;
 	public const int SNAKE = 2;
 
+	// direction values
+	public const int LEFT = 1;
+	public const int RIGHT = 2;
+	public const int UP = 3;
+	public const int DOWN = 4;
+
+	// game state keys
+	private const string LEVEL = "LEVEL";
+	private const string SCORE = "SCORE";
+
 	// game logic
 	private int[,] grid; 
 	private ArrayList empty_spaces;
@@ -20,6 +32,7 @@ public class GameScript : MonoBehaviour {
 	private const int rows = 13;
 	private const int cols = 25;
 	private int level;
+	private int currentScore;
 	private int direction;
 	private bool userWin;
 	private bool gameOver;
@@ -91,7 +104,11 @@ public class GameScript : MonoBehaviour {
 
 
 	// Use this for initialization
-	void Start () {
+	void Start () 
+	{
+		//PlayerPrefs.DeleteAll();
+		// load the current game state
+		loadGame();
 
 		// create the game grid
 		grid = new int[rows,cols];
@@ -99,9 +116,6 @@ public class GameScript : MonoBehaviour {
 		frames = new ArrayList();
 		gameOver = false;
 		userWin = false;
-
-		// get the current level from the manager
-		level = GameObject.Find("GameManager").GetComponent<GameManager>().getLevel();
 		
 		// HUD values
 		hudWidth = Screen.width/4;
@@ -142,10 +156,9 @@ public class GameScript : MonoBehaviour {
 			{
 				// user failed this level
 				userWin = false;
-
 			}
 		}
-	}    
+	}   
 
 	void OnGUI ()
 	{
@@ -155,6 +168,8 @@ public class GameScript : MonoBehaviour {
 		// draw the menu
 		drawMenu();
 	}
+
+
 
 	// loads the level from a file
 	void createLevel()
@@ -209,48 +224,54 @@ public class GameScript : MonoBehaviour {
 		// find a valid space based on the direction
 		bool valid = false;
 		Vector2 space = getRandomEmptySpace();
-		int index = 0;
+		int tail_index = 0;
+		int valid_move_index = 0;
 		while (!valid)
 		{
-			// need to check the space for the tail before setting the snake to it
-			if (direction == 1)
+			// need to check the space to see if there is room for the tail 
+			// and whether the user has at least 1 move in the direction before setting the snake to it
+			if (direction == LEFT)
 			{
-				// left - the column on the right needs to be empty too
-				index = empty_spaces.IndexOf(new Vector2(space.x, space.y+1));
-				if (index != -1)
-					valid = true;
+				// - the column on the right needs to be empty too for the tail
+				// - the column on the left needs to be empty 
+				tail_index = empty_spaces.IndexOf(new Vector2(space.x, space.y+1));
+				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x, space.y-1));
 			}
-			else if (direction == 2)
+			else if (direction == RIGHT)
 			{
-				// right - the column on the left needs to be empty too
-				index = empty_spaces.IndexOf(new Vector2(space.x, space.y-1));
-				if (index != -1)
-					valid = true;
+				// - the column on the left needs to be empty too for the tail
+				// - the column on the right needs to be empty 
+				tail_index = empty_spaces.IndexOf(new Vector2(space.x, space.y-1));
+				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x, space.y+1));
 			}
-			else if (direction == 3)
+			else if (direction == UP)
 			{
-				// up - the row down needs to be empty too
-				index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
-				if (index != -1)
-					valid = true;
+				// - the row down needs to be empty too for the tail
+				// - the row above needs to be empty 
+				tail_index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
+				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
 			}
 			else
 			{
-				// down - the row up needs to be empty too
-				index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
-				if (index != -1)
-					valid = true;
+				// - the row above needs to be empty too for the tail
+				// - the row down needs to be empty 
+				tail_index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
+				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
 			}
 
+			// ensure that both spaces are available
+			if (tail_index != -1 && valid_move_index != -1)
+				valid = true;
+			
 			if (!valid)
 			{
-				// get a random empty space from the array 0 - count
+				// get a new random empty space from the array 0 - count
 				space = getRandomEmptySpace();
 			}
 		}
 
 		// found a valid tail space
-		Vector2 tail_space = (Vector2)empty_spaces[index];
+		Vector2 tail_space = (Vector2)empty_spaces[tail_index];
 		
 		// remove the valid spaces from empty spaces
 		empty_spaces.Remove(space);
@@ -263,6 +284,9 @@ public class GameScript : MonoBehaviour {
 		// set the snake head and tail to the spaces
 		snake.GetComponent<SnakeScript>().setHeadStartingPosition((int)space.x, (int)space.y, direction);
 		snake.GetComponent<SnakeScript>().setTailStartingPosition((int)tail_space.x, (int)tail_space.y);
+
+		// set the snake score saved from the game state
+		snake.GetComponent<SnakeScript>().setScore(currentScore);
 	}
 
 	// returns a random empty space from the grid
@@ -291,6 +315,32 @@ public class GameScript : MonoBehaviour {
 		}
 	}
 
+	// loads the game state as defined by the text file
+	void loadGame()
+	{
+		if (!PlayerPrefs.HasKey(LEVEL))
+		{
+			// new game save the default game state
+			PlayerPrefs.SetInt(LEVEL, 1);
+			PlayerPrefs.SetInt(SCORE, 0);
+		}
+
+		// get the current game state
+		level = PlayerPrefs.GetInt(LEVEL);
+		currentScore = PlayerPrefs.GetInt(SCORE);
+	}
+	
+	// saves the game state 
+	void saveGame()
+	{
+		// store the level, score, coins collected for this level and total of each
+		PlayerPrefs.SetInt(LEVEL, level);
+		if (userWin)
+			PlayerPrefs.SetInt(SCORE, snake.GetComponent<SnakeScript>().getScore());
+		else
+			PlayerPrefs.SetInt(SCORE, 0);
+	}
+	
 	// draws the HUD
 	void drawHUD()
 	{
@@ -315,6 +365,21 @@ public class GameScript : MonoBehaviour {
 			if (userWin)
 			{
 				// display the scoreboard
+				float x = Screen.width/2;
+				float y = Screen.height/2;
+				float w = hudWidth/2;
+				float h = hudHeight;
+				
+				if (GUI.Button(new Rect(x,y,w,h), "Next"))
+				{
+					level++;
+
+					// save the game state
+					saveGame();
+
+					// Load the level
+					Application.LoadLevel("level");
+				}
 			}
 			else
 			{
@@ -326,12 +391,18 @@ public class GameScript : MonoBehaviour {
 			
 				if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
 				{
+					// save the game state
+					saveGame();
+
 					// Reload the level
 					Application.LoadLevel("level");
 				}
 				
 				if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
 				{
+					// save the game state
+					saveGame();
+
 					// Reload the level
 					Application.LoadLevel("Menu");
 				}

@@ -30,11 +30,11 @@ public class SnakeScript : MonoBehaviour {
 		row = r;
 		col = c;
 
-		if (direction == 1)
+		if (direction == GameScript.LEFT)
 			left = true;
-		else if (direction == 2)
+		else if (direction == GameScript.RIGHT)
 			right = true;
-		else if (direction == 3)
+		else if (direction == GameScript.UP)
 			up = true;
 		else
 			down = true;
@@ -77,6 +77,11 @@ public class SnakeScript : MonoBehaviour {
 		return score;
 	}
 
+	public void setScore(int s)
+	{
+		score = s;
+	}
+
 
 
 	// Use this for initialization
@@ -92,7 +97,7 @@ public class SnakeScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		// user input
+		/*// user input
 		if (Input.touchCount > 0) 
 		{
 			Touch touch = Input.GetTouch(0);
@@ -152,9 +157,9 @@ public class SnakeScript : MonoBehaviour {
 					up = false;
 				}
 			}
-		}
+		}*/
 
-		/* Use for testing in Unity not on device
+		// Use for testing in Unity not on device
 		// get the keyboard values and calculate the movement
 		float inputX = Input.GetAxis ("Horizontal");
 		float inputY = Input.GetAxis ("Vertical");
@@ -192,7 +197,7 @@ public class SnakeScript : MonoBehaviour {
 			right = false;	
 			down = true;
 			up = false;
-		}*/
+		}
 	}
 
 	void FixedUpdate(){
