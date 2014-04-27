@@ -17,6 +17,7 @@ public class SnakeScript : MonoBehaviour {
 	private bool right;
 	private bool up;
 	private bool down;
+	private bool getUserInput;
 	private float lastUpdate;
 	private Transform parent;
 	private int row;
@@ -42,8 +43,8 @@ public class SnakeScript : MonoBehaviour {
 		// set the snakes parent, position and scale
 		parent = GameObject.Find("Foreground").transform;	
 		transform.parent = parent;
-		transform.position = gameScript.getScaledPostion(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
-		transform.localScale = gameScript.getScaledPostion(transform.localScale.x, transform.localScale.y, transform.localScale.z);
+		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
+		transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
 	}
 
 	public void setTailStartingPosition(int r, int c)
@@ -52,8 +53,8 @@ public class SnakeScript : MonoBehaviour {
 		tail = Instantiate(tail) as Transform;
 		tail.parent = parent;
 		tail.name = "tail";
-		tail.position = gameScript.getScaledPostion(c+transform.parent.position.x, r+transform.parent.position.y, (float)parent.position.z);
-		tail.localScale = gameScript.getScaledPostion(tail.localScale.x, tail.localScale.y, tail.localScale.z);
+		tail.position = new Vector3(c+transform.parent.position.x, r+transform.parent.position.y, (float)parent.position.z);
+		tail.localScale = new Vector3(tail.localScale.x, tail.localScale.y, tail.localScale.z);
 	}
 
 	public void setGameScript(GameScript gs)
@@ -92,18 +93,19 @@ public class SnakeScript : MonoBehaviour {
 		body_parts = 0;
 		lastUpdate = 0;
 		bodies = new ArrayList();
+		getUserInput = true;
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		/*// user input
+		// user input
 		if (Input.touchCount > 0) 
 		{
 			Touch touch = Input.GetTouch(0);
 
 			// user input is swiping the screen
-			if (touch.phase == TouchPhase.Moved)
+			if (touch.phase == TouchPhase.Moved && getUserInput)
 			{
 				Vector2 deltaPostion = Input.GetTouch(0).deltaPosition;
 
@@ -111,93 +113,94 @@ public class SnakeScript : MonoBehaviour {
 				float dx = deltaPostion.x;
 				float dy = deltaPostion.y;
 				float delta = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
-				float inputX = 0;
-				float inputY = 0;
+
 				if (delta == Mathf.Abs(dx))
 				{
 					// user chose a horizontal movement
-					inputX = dx;
+					if (!right && dx < 0)
+					{
+						// left
+						left = true;
+						right = false;	
+						down = false;
+						up = false;
+					}
+					else if (!left && dx > 0)
+					{
+						// right
+						left = false;
+						right = true;	
+						down = false;
+						up = false;
+					}
 				}
 				else
 				{
 					// user chose a vertical movement
-					inputY = dy;
+					if (!down && dy > 0)
+					{
+						// up
+						left = false;
+						right = false;	
+						down = false;
+						up = true;
+					}
+					else if (!up && dy < 0)
+					{
+						// down	
+						left = false;
+						right = false;	
+						down = true;
+						up = false;
+					}
 				}
-
-				if (!right && inputX < 0)
-				{
-					// left
-					left = true;
-					right = false;	
-					down = false;
-					up = false;
-				}
-				else if (!left && inputX > 0)
-				{
-					// right
-					left = false;
-					right = true;	
-					down = false;
-					up = false;
-				}
-				else if (!down && inputY < 0)
-				{
-					// up
-					left = false;
-					right = false;	
-					down = false;
-					up = true;
-				}
-				else if (!up && inputY > 0)
-				{
-					// down	
-					left = false;
-					right = false;	
-					down = true;
-					up = false;
-				}
+				getUserInput =false;
 			}
-		}*/
-
-		// Use for testing in Unity not on device
-		// get the keyboard values and calculate the movement
-		float inputX = Input.GetAxis ("Horizontal");
-		float inputY = Input.GetAxis ("Vertical");
-		
-		// determine the direction the user wants to go
-		// need to remove the going left then able to go right and top -> bottom
-		if (!right && inputX < 0)
-		{
-			// left
-			left = true;
-			right = false;	
-			down = false;
-			up = false;
 		}
-		else if (!left && inputX > 0)
-		{
-			// right
-			left = false;
-			right = true;	
-			down = false;
-			up = false;
-		}
-		else if (!down && inputY < 0)
-		{
-			// up
-			left = false;
-			right = false;	
-			down = false;
-			up = true;
-		}
-		else if (!up && inputY > 0)
-		{
-			// down	
-			left = false;
-			right = false;	
-			down = true;
-			up = false;
-		}
+		/*
+			// Use for testing in Unity not on device
+			// get the keyboard values and calculate the movement
+			float inputX = Input.GetAxis ("Horizontal");
+			float inputY = Input.GetAxis ("Vertical");
+			
+			// determine the direction the user wants to go
+			// need to remove the going left then able to go right and top -> bottom
+			if (!right && inputX < 0)
+			{
+				// left
+				left = true;
+				right = false;	
+				down = false;
+				up = false;
+				print ("left");
+			}
+			else if (!left && inputX > 0)
+			{
+				// right
+				left = false;
+				right = true;	
+				down = false;
+				up = false;
+				print ("right");
+			}
+			else if (!down && inputY > 0)
+			{
+				// up
+				left = false;
+				right = false;	
+				down = false;
+				up = true;
+				print ("up");
+			}
+			else if (!up && inputY < 0)
+			{
+				// down	
+				left = false;
+				right = false;	
+				down = true;
+				up = false;
+				print ("down");
+			}*/
 	}
 
 	void FixedUpdate(){
@@ -207,17 +210,17 @@ public class SnakeScript : MonoBehaviour {
 
 		// update when it is time to and the game isn't over
 		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver())
-		{
+		{	
 			// continue in the same direction
 			if (left)
 				col--;
 			else if (right)
 				col++;
-			else if (down)
+			else if (up)
 				row++;
-			else if(up)
+			else if(down)
 				row--;
-
+	
 			// only move the snake if the new cell is empty
 			if (gameScript.isGridEmpty(row,col))
 			{
@@ -252,10 +255,13 @@ public class SnakeScript : MonoBehaviour {
 				}
 	
 				// update the head position
-				transform.position = gameScript.getScaledPostion(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
+				transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
 
 				// update the grid
 				gameScript.updateGrid(row, col, GameScript.SNAKE);
+				
+				lastUpdate = Time.time;
+				getUserInput = true;
 			}
 			else
 			{
@@ -269,8 +275,6 @@ public class SnakeScript : MonoBehaviour {
 				// flash the snake
 				InvokeRepeating("flashSnake", 0, 0.25f);
 			}
-
-			lastUpdate = Time.time;
 		}
 	}
 
@@ -334,16 +338,15 @@ public class SnakeScript : MonoBehaviour {
 		body.parent = parent;
 		body.name = "body"+body_parts;
 		body.position = transform.position;
-		body.localScale = gameScript.getScaledPostion(body.localScale.x, body.localScale.y, body.localScale.z);
+		body.localScale = new Vector3(body.localScale.x, body.localScale.y, body.localScale.z);
 		bodies.Add(body);
 	}
 
 	void updateGridFromTail()
 	{
 		// update the grid based on the tail position before it moves
-		Vector2 cr = gameScript.getColAndRow(tail.position.x, tail.position.y);
-		int row = Mathf.RoundToInt(cr.y-transform.parent.position.y);
-		int col = Mathf.RoundToInt(cr.x-transform.parent.position.x);
+		int row = Mathf.RoundToInt(tail.position.y-transform.parent.position.y);
+		int col = Mathf.RoundToInt(tail.position.x-transform.parent.position.x);
 		gameScript.updateGrid(row, col, GameScript.EMPTY);
 	}
 }

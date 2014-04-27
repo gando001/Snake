@@ -69,19 +69,7 @@ public class GameScript : MonoBehaviour {
 		Vector2 space = getRandomEmptySpace();
 
 		// set the apple to the random position
-		apple.transform.position = this.getScaledPostion((space.y+apple.transform.parent.position.x), (space.x+apple.transform.parent.position.y), apple.transform.parent.position.z);
-	}
-
-	// Returns the given position scaled to the current screens width and height
-	public Vector3 getScaledPostion(float x, float y, float z)
-	{
-		return new Vector3(x,y,z);
-	}
-
-	// Returns the column and row for the given scaled position
-	public Vector2 getColAndRow(float x, float y)
-	{
-		return new Vector2(x, y);
+		apple.transform.position = new Vector3((space.y+apple.transform.parent.position.x), (space.x+apple.transform.parent.position.y), apple.transform.parent.position.z);
 	}
 
 	public bool isGridEmpty(int row, int col)
@@ -158,6 +146,12 @@ public class GameScript : MonoBehaviour {
 				userWin = false;
 			}
 		}
+
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			// user pressed the go back button so load the menu
+			Application.LoadLevel("menu");
+		}
 	}   
 
 	void OnGUI ()
@@ -197,8 +191,8 @@ public class GameScript : MonoBehaviour {
 					// add a frame 
 					frame = Instantiate(frame) as GameObject;
 					frame.transform.parent = parent;
-					frame.transform.localScale = this.getScaledPostion(0.25f, 0.25f, 0);
-					frame.transform.position =  this.getScaledPostion(current_col + x, current_row + y, z);
+					frame.transform.localScale = new Vector3(0.25f, 0.25f, 0);
+					frame.transform.position =  new Vector3(current_col + x, current_row + y, z);
 					frame.name = "Frame";
 					grid[current_row, current_col] = FRAME;
 					frames.Add(frame);
@@ -248,15 +242,15 @@ public class GameScript : MonoBehaviour {
 			{
 				// - the row down needs to be empty too for the tail
 				// - the row above needs to be empty 
-				tail_index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
-				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
+				tail_index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
+				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
 			}
 			else
 			{
 				// - the row above needs to be empty too for the tail
 				// - the row down needs to be empty 
-				tail_index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
-				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
+				tail_index = empty_spaces.IndexOf(new Vector2(space.x+1, space.y));
+				valid_move_index = empty_spaces.IndexOf(new Vector2(space.x-1, space.y));
 			}
 
 			// ensure that both spaces are available
@@ -309,8 +303,8 @@ public class GameScript : MonoBehaviour {
 			background = Instantiate(background) as GameObject;
 			background.transform.parent = parent;
 			background.transform.name = "background"+(i+1);
-			background.transform.localScale = this.getScaledPostion(1.5f, 2.75f, 0);
-			background.transform.position =  this.getScaledPostion(x, y, z);
+			background.transform.localScale = new Vector3(1.5f, 2.75f, 0);
+			background.transform.position =  new Vector3(x, y, z);
 			x += 7.5f;
 		}
 	}
@@ -404,7 +398,7 @@ public class GameScript : MonoBehaviour {
 					saveGame();
 
 					// Reload the level
-					Application.LoadLevel("Menu");
+					Application.LoadLevel("menu");
 				}
 			}
 		}
