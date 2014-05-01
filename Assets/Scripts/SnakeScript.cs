@@ -99,7 +99,7 @@ public class SnakeScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		// user input
+		/*// user input
 		if (Input.touchCount > 0) 
 		{
 			Touch touch = Input.GetTouch(0);
@@ -156,8 +156,8 @@ public class SnakeScript : MonoBehaviour {
 				}
 				getUserInput =false;
 			}
-		}
-		/*
+		}*/
+		
 			// Use for testing in Unity not on device
 			// get the keyboard values and calculate the movement
 			float inputX = Input.GetAxis ("Horizontal");
@@ -200,7 +200,7 @@ public class SnakeScript : MonoBehaviour {
 				down = true;
 				up = false;
 				print ("down");
-			}*/
+			}
 	}
 
 	void FixedUpdate(){
