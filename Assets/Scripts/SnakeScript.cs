@@ -7,11 +7,6 @@ public class SnakeScript : MonoBehaviour {
 	public float speed;
 	public Transform tail;
 	public Transform body;
-	public Sprite body_corner_1;
-	public Sprite body_corner_2;
-	public Sprite body_corner_3;
-	public Sprite body_corner_4;
-	public Sprite body_normal;
 
 	// snake logic
 	private int score;
@@ -31,6 +26,10 @@ public class SnakeScript : MonoBehaviour {
 	private GameScript gameScript;
 	private ArrayList bodies;
 	private int direction;
+
+	// coins
+	private int number_of_coins;
+	private int coin_body_index;
 	
 	public void setHeadStartingPosition(int r, int c, int direction)
 	{
@@ -53,7 +52,6 @@ public class SnakeScript : MonoBehaviour {
 		transform.parent = parent;
 		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
 		transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
-		transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
 	}
 
 	public void setTailStartingPosition(int r, int c)
@@ -93,6 +91,11 @@ public class SnakeScript : MonoBehaviour {
 		score = s;
 	}
 
+	public void setNumberOfCoins(int v)
+	{
+		number_of_coins = v;
+	}
+
 
 
 	// Use this for initialization
@@ -104,13 +107,14 @@ public class SnakeScript : MonoBehaviour {
 		lastUpdate = 0;
 		bodies = new ArrayList();
 		getUserInput = true;
+		setCoinBodyIndex();
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
-		/*// user input
-		if (Input.touchCount > 0) 
+		// user input
+		/*if (Input.touchCount > 0) 
 		{
 			Touch touch = Input.GetTouch(0);
 
@@ -270,7 +274,6 @@ public class SnakeScript : MonoBehaviour {
 	
 				// update the head position
 				transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
-				transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
 
 				// update the grid
 				gameScript.updateGrid(row, col, GameScript.SNAKE);
@@ -305,6 +308,14 @@ public class SnakeScript : MonoBehaviour {
 		{
 			// increment the snake
 			incrementSnake();
+		}
+		else if (otherCollider.gameObject.name == "Coin")
+		{
+			// increment the score
+			score += GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue();
+
+			// remove the coin
+			gameScript.coin.SetActive(false);
 		}
 	}
 
@@ -345,6 +356,17 @@ public class SnakeScript : MonoBehaviour {
 			// add a new body to the snake
 			eaten = true;
 			gameScript.moveApple();
+
+			// find a new time to display the coin
+			if (body_parts == coin_body_index)
+			{
+				// display the coin
+				gameScript.displayCoin();
+				
+				number_of_coins--;
+				if (number_of_coins > 0)
+					setCoinBodyIndex();
+			}
 		}
 	}
 
@@ -356,64 +378,32 @@ public class SnakeScript : MonoBehaviour {
 		body.name = "body"+body_parts;
 		body.position = transform.position;
 		body.localScale = new Vector3(body.localScale.x, body.localScale.y, body.localScale.z);
-	//	bodies.Add(body);
+		bodies.Add(body);
+	}
+
+	// randomly choose when to display the coins based on the snake body length
+	void setCoinBodyIndex()
+	{
+		coin_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
+		print (number_of_coins+":"+coin_body_index);
 	}
 
 	void updateSprites()
 	{
-		// rotates the sprites as required
+		// rotate the head
+		transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
+
 		if (body_parts == 0)
-		{
-			// tail follows head
 			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, transform.position));
-		}
 		else
-		{
-			// update the body parts
-			GameObject current = GameObject.Find("body"+body_parts);
-			Vector3 rot = getRotation(current.transform.position, transform.position);
-			int z = Mathf.RoundToInt(current.transform.rotation.eulerAngles.z);
-
-			if (z != (int)rot.z && current.gameObject.GetComponent<SpriteRenderer>().sprite == body_normal)
-			{
-				// this body is on a corner so change its sprite
-				current.gameObject.GetComponent<SpriteRenderer>().sprite = getCornerSprite(z, (int)rot.z);
-				current.transform.rotation = Quaternion.Euler(new Vector3(0,0,0));
-			}
-			else
-			{
-				current.gameObject.GetComponent<SpriteRenderer>().sprite = body_normal;
-				current.transform.rotation = Quaternion.Euler(rot);
-			}
-
-			for (int i=body_parts; i>1; i--)
-			{
-				current = GameObject.Find("body"+(i-1));
-				rot = getRotation(current.transform.position, GameObject.Find("body"+i).transform.position);
-				z = Mathf.RoundToInt(current.transform.rotation.eulerAngles.z);
-
-				if (z != (int)rot.z && current.gameObject.GetComponent<SpriteRenderer>().sprite == body_normal)
-				{
-					// this body is on a corner so change its sprite
-					current.gameObject.GetComponent<SpriteRenderer>().sprite = getCornerSprite(z, (int)rot.z);
-					current.transform.rotation = Quaternion.Euler(new Vector3(0,0,0));
-				}
-				else
-				{
-					current.gameObject.GetComponent<SpriteRenderer>().sprite = body_normal;
-					current.transform.rotation = Quaternion.Euler(rot);
-				}
-			}
-
 			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, GameObject.Find("body1").transform.position));
-		}
 	}
 
 	Vector3 getRotation(Vector3 current, Vector3 future)
 	{
 		// returns a Vector for the rotation the sprite should apply based on its
 		// current and future positions
-
+		
 		int curRow = Mathf.RoundToInt(current.y-transform.parent.position.y);
 		int curCol = Mathf.RoundToInt(current.x-transform.parent.position.x);
 		
@@ -449,7 +439,7 @@ public class SnakeScript : MonoBehaviour {
 				z = 0;
 			}
 		}
-
+		
 		return new Vector3(0,0,z);
 	}
 
@@ -463,28 +453,6 @@ public class SnakeScript : MonoBehaviour {
 			return 270;
 		else
 			return 90;
-	}
-
-	Sprite getCornerSprite(int curZ, int newZ)
-	{
-		// returns the sprite required based on the given values
-		if ((curZ == 180 && newZ == 270) || (curZ == 90 && newZ == 0))
-		{
-			// right -> up or down -> left
-			return body_corner_1;
-		}
-		else if ((curZ == 0 && newZ == 270) || (curZ == 90 && newZ == 180))
-		{
-			// left -> up or down -> right
-			return body_corner_2;
-		}
-		else if ((curZ == 0 && newZ == 90) || (curZ == 270 && newZ == 180))
-		{
-			// left -> down or up -> right
-			return body_corner_3;
-		}
-		else
-			return body_corner_4; // right -> down or up -> left
 	}
 
 	void updateGridFromTail()

@@ -1,9 +1,10 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/SnakeScript.cs">
     <Files>
-      <File FileName="Assets/Scripts/GameScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/SnakeScript.cs" Line="373" Column="95" />
+      <File FileName="Assets/Scripts/GameScript.cs" Line="308" Column="68" />
+      <File FileName="Assets/Scripts/SnakeScript.cs" Line="387" Column="71" />
+      <File FileName="Assets/Scripts/CoinScript.cs" Line="6" Column="28" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

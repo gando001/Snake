@@ -9,6 +9,7 @@ public class GameScript : MonoBehaviour {
 	public GameObject frame;
 	public GameObject apple;
 	public GameObject snake;
+	public GameObject coin;
 
 	// level values
 	public const int EMPTY = 0;
@@ -89,6 +90,24 @@ public class GameScript : MonoBehaviour {
 		return gameOver;
 	}
 
+	// displays the coin in the level
+	public void displayCoin()
+	{
+		if (coin.activeSelf == false)
+		{
+			// set the coin to active and reset its values
+			coin.SetActive(true);
+			coin.GetComponent<CoinScript>().reset();
+			
+			// get a random empty space from the array 0 - count
+			Vector2 space = getRandomEmptySpace();
+			
+			// set the coin to the random position
+			coin.transform.position = new Vector3((space.y+coin.transform.parent.position.x), (space.x+coin.transform.parent.position.y), coin.transform.parent.position.z);
+		}
+	}
+
+
 
 
 	// Use this for initialization
@@ -116,6 +135,9 @@ public class GameScript : MonoBehaviour {
 
 		// create the level
 		createLevel();
+
+		// create the coin(s)
+		createCoins();
 		
 		// create the snake
 		snake = Instantiate(snake) as GameObject;
@@ -281,6 +303,9 @@ public class GameScript : MonoBehaviour {
 
 		// set the snake score saved from the game state
 		snake.GetComponent<SnakeScript>().setScore(currentScore);
+
+		// randomly choose how many coins this level will have (1-3)
+		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(1,4));
 	}
 
 	// returns a random empty space from the grid
@@ -307,6 +332,15 @@ public class GameScript : MonoBehaviour {
 			background.transform.position =  new Vector3(x, y, z);
 			x += 7.5f;
 		}
+	}
+
+	// create the coins for the level
+	void createCoins()
+	{
+		coin = Instantiate(coin) as GameObject;
+		coin.transform.parent = GameObject.Find("Foreground").transform;
+		coin.name = "Coin";
+		coin.SetActive(false);
 	}
 
 	// loads the game state as defined by the text file
