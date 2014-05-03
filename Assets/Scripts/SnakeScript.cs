@@ -7,6 +7,11 @@ public class SnakeScript : MonoBehaviour {
 	public float speed;
 	public Transform tail;
 	public Transform body;
+	public Sprite body_corner_1;
+	public Sprite body_corner_2;
+	public Sprite body_corner_3;
+	public Sprite body_corner_4;
+	public Sprite body_normal;
 
 	// snake logic
 	private int score;
@@ -25,11 +30,13 @@ public class SnakeScript : MonoBehaviour {
 	private bool eaten;
 	private GameScript gameScript;
 	private ArrayList bodies;
+	private int direction;
 	
 	public void setHeadStartingPosition(int r, int c, int direction)
 	{
 		row = r;
 		col = c;
+		this.direction = direction;
 
 		if (direction == GameScript.LEFT)
 			left = true;
@@ -40,11 +47,13 @@ public class SnakeScript : MonoBehaviour {
 		else
 			down = true;
 
+
 		// set the snakes parent, position and scale
 		parent = GameObject.Find("Foreground").transform;	
 		transform.parent = parent;
 		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z);
 		transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
+		transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
 	}
 
 	public void setTailStartingPosition(int r, int c)
@@ -55,6 +64,7 @@ public class SnakeScript : MonoBehaviour {
 		tail.name = "tail";
 		tail.position = new Vector3(c+transform.parent.position.x, r+transform.parent.position.y, (float)parent.position.z);
 		tail.localScale = new Vector3(tail.localScale.x, tail.localScale.y, tail.localScale.z);
+		updateSprites();
 	}
 
 	public void setGameScript(GameScript gs)
@@ -124,6 +134,7 @@ public class SnakeScript : MonoBehaviour {
 						right = false;	
 						down = false;
 						up = false;
+						direction = GameScript.LEFT;
 					}
 					else if (!left && dx > 0)
 					{
@@ -132,6 +143,7 @@ public class SnakeScript : MonoBehaviour {
 						right = true;	
 						down = false;
 						up = false;
+						direction = GameScript.RIGHT;
 					}
 				}
 				else
@@ -144,6 +156,7 @@ public class SnakeScript : MonoBehaviour {
 						right = false;	
 						down = false;
 						up = true;
+						direction = GameScript.UP;
 					}
 					else if (!up && dy < 0)
 					{
@@ -152,6 +165,7 @@ public class SnakeScript : MonoBehaviour {
 						right = false;	
 						down = true;
 						up = false;
+						direction = GameScript.DOWN;
 					}
 				}
 				getUserInput =false;
@@ -172,7 +186,7 @@ public class SnakeScript : MonoBehaviour {
 				right = false;	
 				down = false;
 				up = false;
-				print ("left");
+				direction = GameScript.LEFT;
 			}
 			else if (!left && inputX > 0)
 			{
@@ -181,7 +195,7 @@ public class SnakeScript : MonoBehaviour {
 				right = true;	
 				down = false;
 				up = false;
-				print ("right");
+				direction = GameScript.RIGHT;
 			}
 			else if (!down && inputY > 0)
 			{
@@ -190,7 +204,7 @@ public class SnakeScript : MonoBehaviour {
 				right = false;	
 				down = false;
 				up = true;
-				print ("up");
+				direction = GameScript.UP;
 			}
 			else if (!up && inputY < 0)
 			{
@@ -199,7 +213,7 @@ public class SnakeScript : MonoBehaviour {
 				right = false;	
 				down = true;
 				up = false;
-				print ("down");
+				direction = GameScript.DOWN;
 			}
 	}
 
@@ -256,9 +270,12 @@ public class SnakeScript : MonoBehaviour {
 	
 				// update the head position
 				transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
+				transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
 
 				// update the grid
 				gameScript.updateGrid(row, col, GameScript.SNAKE);
+
+				updateSprites();
 				
 				lastUpdate = Time.time;
 				getUserInput = true;
@@ -339,7 +356,135 @@ public class SnakeScript : MonoBehaviour {
 		body.name = "body"+body_parts;
 		body.position = transform.position;
 		body.localScale = new Vector3(body.localScale.x, body.localScale.y, body.localScale.z);
-		bodies.Add(body);
+	//	bodies.Add(body);
+	}
+
+	void updateSprites()
+	{
+		// rotates the sprites as required
+		if (body_parts == 0)
+		{
+			// tail follows head
+			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, transform.position));
+		}
+		else
+		{
+			// update the body parts
+			GameObject current = GameObject.Find("body"+body_parts);
+			Vector3 rot = getRotation(current.transform.position, transform.position);
+			int z = Mathf.RoundToInt(current.transform.rotation.eulerAngles.z);
+
+			if (z != (int)rot.z && current.gameObject.GetComponent<SpriteRenderer>().sprite == body_normal)
+			{
+				// this body is on a corner so change its sprite
+				current.gameObject.GetComponent<SpriteRenderer>().sprite = getCornerSprite(z, (int)rot.z);
+				current.transform.rotation = Quaternion.Euler(new Vector3(0,0,0));
+			}
+			else
+			{
+				current.gameObject.GetComponent<SpriteRenderer>().sprite = body_normal;
+				current.transform.rotation = Quaternion.Euler(rot);
+			}
+
+			for (int i=body_parts; i>1; i--)
+			{
+				current = GameObject.Find("body"+(i-1));
+				rot = getRotation(current.transform.position, GameObject.Find("body"+i).transform.position);
+				z = Mathf.RoundToInt(current.transform.rotation.eulerAngles.z);
+
+				if (z != (int)rot.z && current.gameObject.GetComponent<SpriteRenderer>().sprite == body_normal)
+				{
+					// this body is on a corner so change its sprite
+					current.gameObject.GetComponent<SpriteRenderer>().sprite = getCornerSprite(z, (int)rot.z);
+					current.transform.rotation = Quaternion.Euler(new Vector3(0,0,0));
+				}
+				else
+				{
+					current.gameObject.GetComponent<SpriteRenderer>().sprite = body_normal;
+					current.transform.rotation = Quaternion.Euler(rot);
+				}
+			}
+
+			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, GameObject.Find("body1").transform.position));
+		}
+	}
+
+	Vector3 getRotation(Vector3 current, Vector3 future)
+	{
+		// returns a Vector for the rotation the sprite should apply based on its
+		// current and future positions
+
+		int curRow = Mathf.RoundToInt(current.y-transform.parent.position.y);
+		int curCol = Mathf.RoundToInt(current.x-transform.parent.position.x);
+		
+		// determine the change in direction
+		int newRow = Mathf.RoundToInt(future.y-transform.parent.position.y);
+		int z = 0;
+		if (newRow != curRow)
+		{
+			// vertical movement
+			if (newRow > curRow)
+			{
+				// up
+				z = 270;
+			}
+			else
+			{
+				// down
+				z = 90;
+			}
+		}
+		else
+		{
+			int newCol = Mathf.RoundToInt(future.x-transform.parent.position.x);
+			// horizontal movement
+			if (newCol > curCol)
+			{
+				// right
+				z = 180;
+			}
+			else
+			{
+				// left
+				z = 0;
+			}
+		}
+
+		return new Vector3(0,0,z);
+	}
+
+	int getRotation(int direction)
+	{
+		if (direction == GameScript.LEFT)
+			return 0;
+		else if (direction == GameScript.RIGHT)
+			return 180;
+		else if (direction == GameScript.UP)
+			return 270;
+		else
+			return 90;
+	}
+
+	Sprite getCornerSprite(int curZ, int newZ)
+	{
+		// returns the sprite required based on the given values
+		if ((curZ == 180 && newZ == 270) || (curZ == 90 && newZ == 0))
+		{
+			// right -> up or down -> left
+			return body_corner_1;
+		}
+		else if ((curZ == 0 && newZ == 270) || (curZ == 90 && newZ == 180))
+		{
+			// left -> up or down -> right
+			return body_corner_2;
+		}
+		else if ((curZ == 0 && newZ == 90) || (curZ == 270 && newZ == 180))
+		{
+			// left -> down or up -> right
+			return body_corner_3;
+		}
+		else
+			return body_corner_4; // right -> down or up -> left
 	}
 
 	void updateGridFromTail()
