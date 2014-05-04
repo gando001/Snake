@@ -30,6 +30,7 @@ public class SnakeScript : MonoBehaviour {
 	// coins
 	private int number_of_coins;
 	private int coin_body_index;
+	private int coins_collected;
 	
 	public void setHeadStartingPosition(int r, int c, int direction)
 	{
@@ -96,6 +97,11 @@ public class SnakeScript : MonoBehaviour {
 		number_of_coins = v;
 	}
 
+	public int getCoinsCollected()
+	{
+		return coins_collected;
+	}
+
 
 
 	// Use this for initialization
@@ -107,6 +113,8 @@ public class SnakeScript : MonoBehaviour {
 		lastUpdate = 0;
 		bodies = new ArrayList();
 		getUserInput = true;
+
+		coins_collected = 0;
 		setCoinBodyIndex();
 	}
 	
@@ -314,6 +322,8 @@ public class SnakeScript : MonoBehaviour {
 			// increment the score
 			score += GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue();
 
+			coins_collected++;
+
 			// remove the coin
 			gameScript.coin.SetActive(false);
 		}
@@ -385,7 +395,6 @@ public class SnakeScript : MonoBehaviour {
 	void setCoinBodyIndex()
 	{
 		coin_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
-		print (number_of_coins+":"+coin_body_index);
 	}
 
 	void updateSprites()

@@ -44,6 +44,9 @@ public class GameScript : MonoBehaviour {
 	private float hudHeight;
 	private float hudY;
 
+	// coin variables
+	public Texture2D coin_sprite;
+
 	public void updateGrid(int row, int col, int value)
 	{
 		if (value == SNAKE)
@@ -380,6 +383,22 @@ public class GameScript : MonoBehaviour {
 
 		// draw the bonus pick up box in the centre
 		GUI.Box(new Rect(hudX+hudWidth,hudY,hudWidth,hudHeight), "");
+
+		// add the coins if any are collected
+		if (snake != null)
+		{
+			int num = snake.GetComponent<SnakeScript>().getCoinsCollected();
+			if (num > 0)
+			{
+				float w = hudWidth/5;
+				float x = hudX+(2*hudWidth)-w;
+				for (int i=0; i<num; i++)
+				{
+					GUI.Box(new Rect(x,hudY,w,hudHeight), coin_sprite);
+					x -= w;
+				}
+			}
+		}
 
 		// draw the score box in the centre right
 		GUI.Box(new Rect(hudX+(2*hudWidth),hudY,hudWidth,hudHeight), "Score "+snake.GetComponent<SnakeScript>().getScore());
