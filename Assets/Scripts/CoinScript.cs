@@ -20,7 +20,7 @@ public class CoinScript : MonoBehaviour {
 		// only display the coin for a limited number of frames
 		if (seconds == 0)
 			this.gameObject.SetActive(false);
-		print (seconds);
+
 		if (seconds > 0)
 			seconds--;
 	}

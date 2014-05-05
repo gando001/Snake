@@ -7,6 +7,8 @@ public class SnakeScript : MonoBehaviour {
 	public float speed;
 	public Transform tail;
 	public Transform body;
+	public Sprite body_corner;
+	public Sprite body_normal;
 
 	// snake logic
 	private int score;
@@ -252,32 +254,36 @@ public class SnakeScript : MonoBehaviour {
 			{
 				if (isEaten())
 				{
-					// create the new body at the heads position
+					// create the new body at the latest bodies position
 					createBody();
 
-					// do not move the snake
 					eaten = false;
 				}
-				else if (body_parts > 0)
-				{
-					// make tail follow the first body part
-					updateGridFromTail();
-					tail.position = GameObject.Find("body1").transform.position;
-
-					// set the position of each body to the body in front of it
-					for (int i=1; i<body_parts; i++)
-					{
-						GameObject.Find("body"+i).transform.position = GameObject.Find("body"+(i+1)).transform.position; 
-					}
-
-					// set the latest body added to the heads position
-					GameObject.Find("body"+body_parts).transform.position = transform.position;
-				}
-				else
+				else if (body_parts == 0)
 				{	
-					// set the tail to the heads position - no bodies tail follows head
+					// only move the tail if we haven't eaten an apple
+					// set the tail to the heads position - no bodies so tail follows head
 					updateGridFromTail();
 					tail.position = transform.position;
+				}
+				else
+				{
+					// only move the tail if we haven't eaten an apple
+					// make tail follow the latest body part
+					updateGridFromTail();
+					tail.position = GameObject.Find("body"+body_parts).transform.position;
+				}
+	
+				if (body_parts > 0)
+				{
+					// set the position of each body to the body in front of it (has a lower number)
+					for (int i=body_parts; i>1; i--)
+					{
+						GameObject.Find("body"+i).transform.position = GameObject.Find("body"+(i-1)).transform.position; 
+					}
+
+					// set the first body added to the heads position
+					GameObject.Find("body1").transform.position = transform.position;
 				}
 	
 				// update the head position
@@ -353,7 +359,9 @@ public class SnakeScript : MonoBehaviour {
 
 	void incrementSnake()
 	{
-		score += 10;
+		// increment the score
+		score += GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue();
+
 		body_parts++;
 		if (body_parts == body_limit)
 		{
@@ -385,9 +393,51 @@ public class SnakeScript : MonoBehaviour {
 		// create a new body prefab
 		body = Instantiate(body) as Transform;
 		body.parent = parent;
+
+		// add the body to the end of the snake before the tail
 		body.name = "body"+body_parts;
-		body.position = transform.position;
-		body.localScale = new Vector3(body.localScale.x, body.localScale.y, body.localScale.z);
+		if (body_parts > 1)
+		{
+			// add the body after the last body
+			GameObject prev = GameObject.Find("body"+(body_parts-1));
+			body.position = prev.transform.position;
+			body.rotation = prev.transform.rotation;
+			body.GetComponent<BodyScript>().setDirection(prev.GetComponent<BodyScript>().getDirection());
+
+			// add corner sprite if required
+			int r = Mathf.RoundToInt(body.position.y-transform.parent.position.y);
+			int rt = Mathf.RoundToInt(tail.position.y-transform.parent.position.y);
+			print (r+":"+rt);
+			if (r != rt)
+			{
+				int c = Mathf.RoundToInt(body.position.x-transform.parent.position.x);
+				int ct = Mathf.RoundToInt(tail.position.x-transform.parent.position.x);
+				print (c+":"+ct);
+				if (c != ct)
+				{
+					// corner sprite required
+					int rotation;
+					if (r > rt && c > ct)
+						rotation = 0;
+					else if (r > rt && c < ct)
+						rotation = 270;
+					else if (r < rt && c > ct)
+						rotation = 180;
+					else
+						rotation = 90;
+
+					body.rotation = Quaternion.Euler(new Vector3(0,0,rotation));
+				}
+			}
+	
+		}
+		else
+		{
+			// first body so it uses the head properties
+			body.position = transform.position;
+			body.GetComponent<BodyScript>().setDirection(this.direction);
+			body.rotation = transform.rotation;
+		}
 		bodies.Add(body);
 	}
 
@@ -399,13 +449,77 @@ public class SnakeScript : MonoBehaviour {
 
 	void updateSprites()
 	{
-		// rotate the head
-		transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
-
+		// rotates the sprites as required
 		if (body_parts == 0)
+		{
+			// tail follows head
 			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, transform.position));
+		}
 		else
-			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, GameObject.Find("body1").transform.position));
+		{
+			// update the body parts
+			GameObject current = null;
+			GameObject next = null;
+			int currentDirection;
+			int nextDirection;
+			int rotation;
+			for (int i=body_parts; i>0; i--)
+			{
+				// determine if the current body needs to change its default sprite
+				current = GameObject.Find("body"+i);
+				currentDirection = current.GetComponent<BodyScript>().getDirection();
+
+				if (i == 1)
+				{
+					// reached the first body part so it follows the head
+					next = this.gameObject;
+					nextDirection = direction;
+				}
+				else
+				{
+					next =  GameObject.Find("body"+(i-1));
+					nextDirection = next.GetComponent<BodyScript>().getDirection();
+				}
+
+				if (currentDirection != nextDirection)
+				{
+					// this body needs to change direction so it is on a corner => change its sprite
+					rotation = getCorner(currentDirection, nextDirection);
+					current.transform.rotation = Quaternion.Euler(new Vector3(0,0,rotation));
+					current.gameObject.GetComponent<SpriteRenderer>().sprite = body_corner;
+					current.GetComponent<BodyScript>().setDirection(nextDirection);
+				}
+				else
+				{
+					// the directions are the same so leave as a normal body but change its rotation
+					current.gameObject.GetComponent<SpriteRenderer>().sprite = body_normal;
+					current.transform.rotation = Quaternion.Euler(getRotation(current.transform.position, next.transform.position));
+				}
+			}
+
+			// tail follows the latest body part
+			current = GameObject.Find("body"+body_parts);
+			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, current.transform.position));
+		}
+	}
+
+	int getCorner(int currentDirection, int newDirection)
+	{
+		// returns the rotation value of the z axis required for a body part on the corner
+		if ((currentDirection == GameScript.RIGHT && newDirection == GameScript.UP) || (currentDirection == GameScript.DOWN && newDirection == GameScript.LEFT))
+		{
+			return 0;
+		}
+		else if ((currentDirection == GameScript.RIGHT && newDirection == GameScript.DOWN) || (currentDirection == GameScript.UP && newDirection == GameScript.LEFT))
+		{
+			return 90;
+		}
+		else if ((currentDirection == GameScript.LEFT && newDirection == GameScript.DOWN) || (currentDirection == GameScript.UP && newDirection == GameScript.RIGHT))
+		{
+			return 180;
+		}
+		else
+			return 270;
 	}
 
 	Vector3 getRotation(Vector3 current, Vector3 future)
@@ -454,6 +568,7 @@ public class SnakeScript : MonoBehaviour {
 
 	int getRotation(int direction)
 	{
+		// return the rotation based on the given direction
 		if (direction == GameScript.LEFT)
 			return 0;
 		else if (direction == GameScript.RIGHT)
