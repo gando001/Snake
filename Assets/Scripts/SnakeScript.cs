@@ -4,13 +4,13 @@ using System.Collections;
 public class SnakeScript : MonoBehaviour {
 
 	// initial speed values
-	public float speed;
 	public Transform tail;
 	public Transform body;
 	public Sprite body_corner;
 	public Sprite body_normal;
 
 	// snake logic
+	private float speed;
 	private int score;
 	private int body_limit;
 	private int body_parts;
@@ -93,6 +93,16 @@ public class SnakeScript : MonoBehaviour {
 	public void setScore(int s)
 	{
 		score = s;
+	}
+
+	public float getSpeed()
+	{
+		return speed;
+	}
+
+	public void setSpeed(float s)
+	{
+		speed = s;
 	}
 
 	public void setNumberOfCoins(int v)

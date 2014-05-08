@@ -25,6 +25,7 @@ public class GameScript : MonoBehaviour {
 	// game state keys
 	private const string LEVEL = "LEVEL";
 	private const string SCORE = "SCORE";
+	private const string SPEED = "SPEED";
 
 	// game logic
 	private int[,] grid; 
@@ -37,6 +38,7 @@ public class GameScript : MonoBehaviour {
 	private int direction;
 	private bool userWin;
 	private bool gameOver;
+	private float currentSpeed;
 
 	// HUD variables
 	private float hudWidth;
@@ -116,7 +118,6 @@ public class GameScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		//PlayerPrefs.DeleteAll();
 		// load the current game state
 		loadGame();
 
@@ -307,6 +308,9 @@ public class GameScript : MonoBehaviour {
 		// set the snake score saved from the game state
 		snake.GetComponent<SnakeScript>().setScore(currentScore);
 
+		// set the snakes speed saved from the game state
+		snake.GetComponent<SnakeScript>().setSpeed(currentSpeed);
+
 		// randomly choose how many coins this level will have (1-3)
 		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(1,4));
 	}
@@ -346,7 +350,7 @@ public class GameScript : MonoBehaviour {
 		coin.SetActive(false);
 	}
 
-	// loads the game state as defined by the text file
+	// loads the game state as defined by the saved state
 	void loadGame()
 	{
 		if (!PlayerPrefs.HasKey(LEVEL))
@@ -354,22 +358,30 @@ public class GameScript : MonoBehaviour {
 			// new game save the default game state
 			PlayerPrefs.SetInt(LEVEL, 1);
 			PlayerPrefs.SetInt(SCORE, 0);
+			PlayerPrefs.SetFloat(SPEED, 0.5f);
 		}
 
 		// get the current game state
 		level = PlayerPrefs.GetInt(LEVEL);
 		currentScore = PlayerPrefs.GetInt(SCORE);
+		currentSpeed = PlayerPrefs.GetFloat(SPEED);
 	}
 	
 	// saves the game state 
 	void saveGame()
 	{
-		// store the level, score, coins collected for this level and total of each
+		// store the game state
 		PlayerPrefs.SetInt(LEVEL, level);
 		if (userWin)
+		{
 			PlayerPrefs.SetInt(SCORE, snake.GetComponent<SnakeScript>().getScore());
+			PlayerPrefs.SetFloat(SPEED, snake.GetComponent<SnakeScript>().getSpeed());
+		}
 		else
+		{
 			PlayerPrefs.SetInt(SCORE, 0);
+			PlayerPrefs.SetFloat(SPEED, 0.5f);
+		}
 	}
 	
 	// draws the HUD
@@ -419,7 +431,12 @@ public class GameScript : MonoBehaviour {
 				
 				if (GUI.Button(new Rect(x,y,w,h), "Next"))
 				{
+					// increment the level
 					level++;
+
+					// increase the speed every 5 levels
+					if (level % 5 == 0)
+						currentSpeed -= 0.05f;
 
 					// save the game state
 					saveGame();
