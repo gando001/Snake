@@ -26,6 +26,7 @@ public class GameScript : MonoBehaviour {
 	private const string LEVEL = "LEVEL";
 	private const string SCORE = "SCORE";
 	private const string SPEED = "SPEED";
+	private const string COINS = "COINS";
 
 	// game logic
 	private int[,] grid; 
@@ -34,11 +35,12 @@ public class GameScript : MonoBehaviour {
 	private const int rows = 13;
 	private const int cols = 25;
 	private int level;
-	private int currentScore;
 	private int direction;
 	private bool userWin;
 	private bool gameOver;
+	private int currentScore;
 	private float currentSpeed;
+	private int currentCoins;
 
 	// HUD variables
 	private float hudWidth;
@@ -329,8 +331,10 @@ public class GameScript : MonoBehaviour {
 		// set the snakes speed saved from the game state
 		snake.GetComponent<SnakeScript>().setSpeed(currentSpeed);
 
+		snake.GetComponent<SnakeScript>().setCoinsCollected(currentCoins);
+
 		// randomly choose how many coins this level will have (1-3)
-		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(1,4));
+		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(1,4-currentCoins));
 	}
 
 	// returns a random empty space from the grid
@@ -381,6 +385,7 @@ public class GameScript : MonoBehaviour {
 		level = PlayerPrefs.GetInt(LEVEL);
 		currentScore = PlayerPrefs.GetInt(SCORE);
 		currentSpeed = PlayerPrefs.GetFloat(SPEED);
+		currentCoins = PlayerPrefs.GetInt(COINS);
 	}
 	
 	// saves the game state 
@@ -392,6 +397,7 @@ public class GameScript : MonoBehaviour {
 			PlayerPrefs.SetInt(LEVEL, level);
 			PlayerPrefs.SetInt(SCORE, snake.GetComponent<SnakeScript>().getScore());
 			PlayerPrefs.SetFloat(SPEED, snake.GetComponent<SnakeScript>().getSpeed());
+			PlayerPrefs.SetInt(COINS, snake.GetComponent<SnakeScript>().getCoinsCollected());
 		}
 		else
 		{
@@ -405,6 +411,7 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.SetInt(LEVEL, 1);
 		PlayerPrefs.SetInt(SCORE, 0);
 		PlayerPrefs.SetFloat(SPEED, 0.5f);
+		PlayerPrefs.SetInt(COINS, 0);
 	}
 	
 	// draws the HUD

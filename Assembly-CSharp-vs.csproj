@@ -53,9 +53,18 @@
      <Compile Include="Assets\Scripts\GameScript.cs" />
      <Compile Include="Assets\Scripts\MainMenuScript.cs" />
      <Compile Include="Assets\Scripts\SnakeScript.cs" />
+     <None Include="Assets\Resources\Levels\level_8.txt" />
+     <None Include="Assets\Resources\Levels\level_6.txt" />
+     <None Include="Assets\Resources\Levels\level_10.txt" />
+     <None Include="Assets\Resources\Levels\level_9.txt" />
+     <None Include="Assets\Resources\Levels\level_7.txt" />
      <None Include="Assets\Resources\Levels\level_1.txt" />
+     <None Include="Assets\Resources\Levels\level_3.txt" />
      <None Include="Assets\Plugins\AndroidManifest.xml" />
+     <None Include="Assets\Resources\Levels\level_11.txt" />
+     <None Include="Assets\Resources\Levels\level_5.txt" />
      <None Include="Assets\Resources\Levels\level_2.txt" />
+     <None Include="Assets\Resources\Levels\level_4.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

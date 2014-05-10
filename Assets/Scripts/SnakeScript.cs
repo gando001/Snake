@@ -110,6 +110,11 @@ public class SnakeScript : MonoBehaviour {
 		number_of_coins = v;
 	}
 
+	public void setCoinsCollected(int c)
+	{
+		coins_collected = c;
+	}
+
 	public int getCoinsCollected()
 	{
 		return coins_collected;
