@@ -46,6 +46,14 @@ public class GameScript : MonoBehaviour {
 	private float hudHeight;
 	private float hudY;
 
+	// pause/play variables
+	private bool paused;
+
+	// GUI skins
+	private GUISkin skin_normal;
+	private GUISkin skin_pause;
+	private GUISkin skin_play;
+
 	// coin variables
 	public Texture2D coin_sprite;
 
@@ -125,8 +133,15 @@ public class GameScript : MonoBehaviour {
 		grid = new int[rows,cols];
 		empty_spaces = new ArrayList();
 		frames = new ArrayList();
+
 		gameOver = false;
 		userWin = false;
+		paused = false;
+
+		// skins
+		skin_normal = (GUISkin)Resources.Load("Skins/skin_normal");
+		skin_pause = (GUISkin)Resources.Load("Skins/skin_pause");
+		skin_play = (GUISkin)Resources.Load("Skins/skin_play");
 		
 		// HUD values
 		hudWidth = Screen.width/4;
@@ -184,6 +199,9 @@ public class GameScript : MonoBehaviour {
 	{
 		// draws the HUD
 		drawHUD();
+
+		// draws the pause/play menu
+		drawPause();
 
 		// draw the menu
 		drawMenu();
@@ -356,9 +374,7 @@ public class GameScript : MonoBehaviour {
 		if (!PlayerPrefs.HasKey(LEVEL))
 		{
 			// new game save the default game state
-			PlayerPrefs.SetInt(LEVEL, 1);
-			PlayerPrefs.SetInt(SCORE, 0);
-			PlayerPrefs.SetFloat(SPEED, 0.5f);
+			setUpInitialGameState();
 		}
 
 		// get the current game state
@@ -371,24 +387,30 @@ public class GameScript : MonoBehaviour {
 	void saveGame()
 	{
 		// store the game state
-		PlayerPrefs.SetInt(LEVEL, level);
 		if (userWin)
 		{
+			PlayerPrefs.SetInt(LEVEL, level);
 			PlayerPrefs.SetInt(SCORE, snake.GetComponent<SnakeScript>().getScore());
 			PlayerPrefs.SetFloat(SPEED, snake.GetComponent<SnakeScript>().getSpeed());
 		}
 		else
 		{
-			PlayerPrefs.SetInt(SCORE, 0);
-			PlayerPrefs.SetFloat(SPEED, 0.5f);
+			setUpInitialGameState();
 		}
+	}
+
+	// sets up a default game with the default values
+	void setUpInitialGameState()
+	{
+		PlayerPrefs.SetInt(LEVEL, 1);
+		PlayerPrefs.SetInt(SCORE, 0);
+		PlayerPrefs.SetFloat(SPEED, 0.5f);
 	}
 	
 	// draws the HUD
 	void drawHUD()
 	{
-		GUI.skin.box.alignment = TextAnchor.MiddleCenter;
-		GUI.skin.box.fontSize = 18;
+		GUI.skin = skin_normal;
 
 		// draw the level box in the centre left
 		GUI.Box(new Rect(hudX,hudY,hudWidth,hudHeight), "Level "+level);
@@ -416,11 +438,43 @@ public class GameScript : MonoBehaviour {
 		GUI.Box(new Rect(hudX+(2*hudWidth),hudY,hudWidth,hudHeight), "Score "+snake.GetComponent<SnakeScript>().getScore());
 	}
 
+	// draws the pause/play menu
+	void drawPause()
+	{
+		if (!isGameOver())
+		{
+			// draw a button at the top right corner
+			float w = hudWidth/3;
+			float x = Screen.width-w;
+			Rect rect = new Rect(x,hudY,hudHeight,hudHeight);
+			if (!paused)
+			{
+				// game is in play mode so display pause sprite
+				GUI.skin = skin_pause;
+				if (GUI.Button(rect,""))
+				{
+					paused = true;
+					Time.timeScale = 0f;
+				}
+			}
+			else
+			{
+				GUI.skin = skin_play;
+				if (GUI.Button(rect,""))
+				{
+					paused = false;
+					Time.timeScale = 1.0f;
+				}
+			}
+		}
+	}
+
 	// draws the menu once the level has finished
 	void drawMenu()
 	{
 		if (isGameOver())
 		{
+			GUI.skin = skin_normal;
 			if (userWin)
 			{
 				// display the scoreboard

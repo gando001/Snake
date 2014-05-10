@@ -300,7 +300,6 @@ public class SnakeScript : MonoBehaviour {
 	
 				// update the head position
 				transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
-				transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
 
 				// update the grid
 				gameScript.updateGrid(row, col, GameScript.SNAKE);
@@ -499,6 +498,9 @@ public class SnakeScript : MonoBehaviour {
 				}
 			}
 		}
+
+		// update the heads rotation
+		transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
 	}
 
 	int getCorner(int currentDirection, int newDirection)

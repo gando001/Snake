@@ -25,17 +25,40 @@ public class MainMenuScript : MonoBehaviour {
 			// Load the level
 			Application.LoadLevel("level");
 		}
-		
-		if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY, buttonWidth, buttonHeight), "Help"))
-		{	
-			// Load the level
-			Application.LoadLevel("help");
-		}
 
-		if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY+buttonHeight, buttonWidth, buttonHeight), "Quit"))
-		{	
-			// quit the application
-			Application.Quit();
+		if (PlayerPrefs.HasKey("LEVEL"))
+		{
+			if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY, buttonWidth, buttonHeight), "Continue"))
+			{	
+				// Load the level
+				Application.LoadLevel("level");
+			}
+		
+			if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY+buttonHeight, buttonWidth, buttonHeight), "Help"))
+			{	
+				// Load the level
+				Application.LoadLevel("help");
+			}
+
+			if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY+buttonHeight*2, buttonWidth, buttonHeight), "Quit"))
+			{	
+				// quit the application
+				Application.Quit();
+			}
+		}
+		else
+		{
+			if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY, buttonWidth, buttonHeight), "Help"))
+			{	
+				// Load the level
+				Application.LoadLevel("help");
+			}
+			
+			if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY+buttonHeight, buttonWidth, buttonHeight), "Quit"))
+			{	
+				// quit the application
+				Application.Quit();
+			}
 		}
 	}
 }
