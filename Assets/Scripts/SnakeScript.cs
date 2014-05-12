@@ -437,8 +437,8 @@ public class SnakeScript : MonoBehaviour {
 		{
 			// first body so it uses the head properties
 			body.position = transform.position;
-			body.GetComponent<BodyScript>().setDirection(this.direction);
-			body.rotation = transform.rotation;
+			body.GetComponent<BodyScript>().setDirection(tail_direction);
+			//body.rotation = transform.rotation;
 		}
 		bodies.Add(body);
 	}
@@ -456,6 +456,7 @@ public class SnakeScript : MonoBehaviour {
 		{
 			// tail follows head
 			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, transform.position));
+			tail_direction = direction;
 		}
 		else
 		{
@@ -486,7 +487,7 @@ public class SnakeScript : MonoBehaviour {
 					next =  GameObject.Find("body"+(i-1));
 					nextDirection = next.GetComponent<BodyScript>().getDirection();
 				}
-
+		
 				if (currentDirection != nextDirection)
 				{
 					// this body needs to change direction so it is on a corner => change its sprite

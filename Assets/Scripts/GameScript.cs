@@ -15,6 +15,9 @@ public class GameScript : MonoBehaviour {
 	public const int EMPTY = 0;
 	public const int FRAME = 1;
 	public const int SNAKE = 2;
+	public const int TELEPORTER_RED = 3;
+	public const int TELEPORTER_GREEN = 4;
+	public const int TELEPORTER_BLUE = 5;
 
 	// direction values
 	public const int LEFT = 1;
@@ -163,6 +166,7 @@ public class GameScript : MonoBehaviour {
 		// create the snake
 		snake = Instantiate(snake) as GameObject;
 		snake.GetComponent<SnakeScript>().setGameScript(this);
+		snake.name = "Snake";
 		setUpSnake();
 		
 		// create the apple
@@ -225,6 +229,7 @@ public class GameScript : MonoBehaviour {
 		string[] lines = level_file.text.Split("\n"[0]);
 	
 		int current_row = 0;
+		int val = 0;
 		foreach(string l in lines)
 		{
 			// split the line by comma to get each grid component 
@@ -232,7 +237,8 @@ public class GameScript : MonoBehaviour {
 			int current_col = 0;
 			foreach(string c in line)
 			{
-				if (int.Parse(c) == FRAME)
+				val = int.Parse(c);
+				if (val == FRAME)
 				{
 					// add a frame 
 					frame = Instantiate(frame) as GameObject;
@@ -242,6 +248,10 @@ public class GameScript : MonoBehaviour {
 					frame.name = "Frame";
 					grid[current_row, current_col] = FRAME;
 					frames.Add(frame);
+				}
+				else if (val == TELEPORTER_RED)
+				{
+					// add a red teleporter
 				}
 				else
 				{
