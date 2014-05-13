@@ -264,9 +264,9 @@ public class SnakeScript : MonoBehaviour {
 				row++;
 			else if(down)
 				row--;
-	
-			// only move the snake if the new cell is empty
-			if (gameScript.isGridEmpty(row,col))
+
+			// only move the snake if the new cell is empty or a teleporter
+			if (gameScript.isValidMove(row,col))
 			{
 				if (isEaten())
 				{
@@ -303,11 +303,7 @@ public class SnakeScript : MonoBehaviour {
 					GameObject.Find("body1").transform.position = transform.position;
 				}
 	
-				// update the head position
-				transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
-
-				// update the grid
-				gameScript.updateGrid(row, col, GameScript.SNAKE);
+				updateHead();
 
 				updateSprites();
 				
@@ -349,6 +345,15 @@ public class SnakeScript : MonoBehaviour {
 
 			// remove the coin
 			gameScript.coin.SetActive(false);
+		}
+		else if (otherCollider.gameObject.name == "Teleporter")
+		{
+			// get this teleporters matching teleporter so we can get its exit cell
+			Vector2 exit = otherCollider.gameObject.GetComponent<TeleporterScript>().getPair().GetComponent<TeleporterScript>().getExit();
+			row = (int)exit.x;
+			col = (int)exit.y;
+
+			updateHead();
 		}
 	}
 
@@ -403,6 +408,15 @@ public class SnakeScript : MonoBehaviour {
 					setCoinBodyIndex();
 			}
 		}
+	}
+
+	void updateHead()
+	{
+		// update the head position
+		transform.position = new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, transform.position.z);
+		
+		// update the grid
+		gameScript.updateGrid(row, col, GameScript.SNAKE);
 	}
 
 	void createBody()
@@ -506,7 +520,7 @@ public class SnakeScript : MonoBehaviour {
 		}
 
 		// update the heads rotation
-		transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(direction)));
+		transform.rotation = Quaternion.Euler(new Vector3(0,0,gameScript.getRotation(direction)));
 	}
 
 	int getCorner(int currentDirection, int newDirection)
@@ -570,19 +584,6 @@ public class SnakeScript : MonoBehaviour {
 		}
 		
 		return new Vector3(0,0,z);
-	}
-
-	int getRotation(int direction)
-	{
-		// return the rotation based on the given direction
-		if (direction == GameScript.LEFT)
-			return 0;
-		else if (direction == GameScript.RIGHT)
-			return 180;
-		else if (direction == GameScript.UP)
-			return 270;
-		else
-			return 90;
 	}
 
 	void updateGridFromTail()

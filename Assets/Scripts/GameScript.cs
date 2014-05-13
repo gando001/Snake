@@ -10,6 +10,7 @@ public class GameScript : MonoBehaviour {
 	public GameObject apple;
 	public GameObject snake;
 	public GameObject coin;
+	public GameObject teleporter_red;
 
 	// level values
 	public const int EMPTY = 0;
@@ -20,10 +21,10 @@ public class GameScript : MonoBehaviour {
 	public const int TELEPORTER_BLUE = 5;
 
 	// direction values
-	public const int LEFT = 1;
+	public const int LEFT = 4;
 	public const int RIGHT = 2;
-	public const int UP = 3;
-	public const int DOWN = 4;
+	public const int UP = 1;
+	public const int DOWN = 3;
 
 	// game state keys
 	private const string LEVEL = "LEVEL";
@@ -34,7 +35,6 @@ public class GameScript : MonoBehaviour {
 	// game logic
 	private int[,] grid; 
 	private ArrayList empty_spaces;
-	private ArrayList frames;
 	private const int rows = 13;
 	private const int cols = 25;
 	private int level;
@@ -91,9 +91,10 @@ public class GameScript : MonoBehaviour {
 		apple.transform.position = new Vector3((space.y+apple.transform.parent.position.x), (space.x+apple.transform.parent.position.y), apple.transform.parent.position.z);
 	}
 
-	public bool isGridEmpty(int row, int col)
+	public bool isValidMove(int row, int col)
 	{
-		if (grid[row,col] == EMPTY)
+		// returns true if the given row and col in the grid is not a frame
+		if (grid[row,col] != FRAME)
 			return true;
 		return false;
 	}
@@ -125,6 +126,19 @@ public class GameScript : MonoBehaviour {
 		}
 	}
 
+	// return the rotation based on the given direction
+	public int getRotation(int direction)
+	{
+		if (direction == GameScript.LEFT)
+			return 0;
+		else if (direction == GameScript.RIGHT)
+			return 180;
+		else if (direction == GameScript.UP)
+			return 270;
+		else
+			return 90;
+	}
+
 
 
 
@@ -137,7 +151,6 @@ public class GameScript : MonoBehaviour {
 		// create the game grid
 		grid = new int[rows,cols];
 		empty_spaces = new ArrayList();
-		frames = new ArrayList();
 
 		gameOver = false;
 		userWin = false;
@@ -228,6 +241,10 @@ public class GameScript : MonoBehaviour {
 		TextAsset level_file = (TextAsset)Resources.Load("Levels/level_"+level);
 		string[] lines = level_file.text.Split("\n"[0]);
 	
+		// store the teleporters while we find its pair
+		Hashtable teleporters = new Hashtable();                 
+		GameObject current_teleporter = null;
+
 		int current_row = 0;
 		int val = 0;
 		foreach(string l in lines)
@@ -243,22 +260,59 @@ public class GameScript : MonoBehaviour {
 					// add a frame 
 					frame = Instantiate(frame) as GameObject;
 					frame.transform.parent = parent;
-					frame.transform.localScale = new Vector3(0.25f, 0.25f, 0);
 					frame.transform.position =  new Vector3(current_col + x, current_row + y, z);
 					frame.name = "Frame";
 					grid[current_row, current_col] = FRAME;
-					frames.Add(frame);
 				}
-				else if (val == TELEPORTER_RED)
-				{
-					// add a red teleporter
-				}
-				else
+				else if (val == EMPTY)
 				{
 					// store the empty space as a vector (row,col)
 					empty_spaces.Add(new Vector2(current_row, current_col));
 					grid[current_row, current_col] = EMPTY;
 				}
+				else
+				{
+					// teleporters
+
+					// get the id and direction from the number - XXX color, id (color+id), direction
+					int id = int.Parse(val.ToString().Substring(0,2));
+					int dir = int.Parse(val.ToString().Substring(2,1));
+					if (val >= 311 && val <= 394)
+					{
+						// add a red teleporter
+						teleporter_red = Instantiate(teleporter_red) as GameObject;
+						teleporter_red.transform.parent = parent;
+						teleporter_red.transform.position =  new Vector3(current_col + x, current_row + y, z);
+						teleporter_red.GetComponent<TeleporterScript>().setRowAndCol(current_row, current_col);
+						teleporter_red.name = "Teleporter";
+						grid[current_row, current_col] = TELEPORTER_RED;
+						current_teleporter = teleporter_red;
+
+						// direction
+						teleporter_red.transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(dir)));
+						teleporter_red.GetComponent<TeleporterScript>().setDirection(dir);
+					}		                
+
+					// determine whether we have found a pairing teleporter
+					if (!teleporters.Contains(id))
+					{
+						// new teleporter
+						teleporters[id] = current_teleporter;
+					}
+					else
+					{
+						// found the second teleporter of the pair
+						GameObject pair = (GameObject)teleporters[id];
+
+						// make these reference each other
+						pair.GetComponent<TeleporterScript>().setPair(current_teleporter);
+						current_teleporter.GetComponent<TeleporterScript>().setPair(pair);
+
+						// remove the teleporter from the table
+						teleporters.Remove(id);
+					}
+				}
+
 				current_col++;
 			}
 			current_row++;

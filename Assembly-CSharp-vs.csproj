@@ -53,6 +53,7 @@
      <Compile Include="Assets\Scripts\GameScript.cs" />
      <Compile Include="Assets\Scripts\MainMenuScript.cs" />
      <Compile Include="Assets\Scripts\SnakeScript.cs" />
+     <Compile Include="Assets\Scripts\TeleporterScript.cs" />
      <None Include="Assets\Resources\Levels\level_8.txt" />
      <None Include="Assets\Resources\Levels\level_6.txt" />
      <None Include="Assets\Resources\Levels\level_10.txt" />
