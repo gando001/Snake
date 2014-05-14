@@ -160,11 +160,7 @@ public class SnakeScript : MonoBehaviour {
 					if (!right && dx < 0)
 					{
 						// left
-						left = true;
-						right = false;	
-						down = false;
-						up = false;
-						direction = GameScript.LEFT;
+						setLeft();
 					}
 					else if (!left && dx > 0)
 					{
@@ -212,38 +208,22 @@ public class SnakeScript : MonoBehaviour {
 			if (!right && inputX < 0)
 			{
 				// left
-				left = true;
-				right = false;	
-				down = false;
-				up = false;
-				direction = GameScript.LEFT;
+				setLeft();	
 			}
 			else if (!left && inputX > 0)
 			{
 				// right
-				left = false;
-				right = true;	
-				down = false;
-				up = false;
-				direction = GameScript.RIGHT;
+				setRight();
 			}
 			else if (!down && inputY > 0)
 			{
 				// up
-				left = false;
-				right = false;	
-				down = false;
-				up = true;
-				direction = GameScript.UP;
+				setUp();
 			}
 			else if (!up && inputY < 0)
 			{
 				// down	
-				left = false;
-				right = false;	
-				down = true;
-				up = false;
-				direction = GameScript.DOWN;
+				setDown();
 			}
 	}
 
@@ -341,7 +321,7 @@ public class SnakeScript : MonoBehaviour {
 		}
 		else if (otherCollider.gameObject.name == "Teleporter")
 		{
-			if (direction == otherCollider.gameObject.GetComponent<TeleporterScript>().getDirection())
+			if (direction == otherCollider.gameObject.GetComponent<TeleporterScript>().getFacingDirection())
 			{
 				// the snake is entering the correct face of the teleporter
 
@@ -566,5 +546,41 @@ public class SnakeScript : MonoBehaviour {
 			tail.transform.gameObject.SetActive(false);
 		else
 			tail.transform.gameObject.SetActive(true);
+	}
+
+	void setLeft()
+	{
+		left = true;
+		right = false;	
+		down = false;
+		up = false;
+		direction = GameScript.LEFT;
+	}
+
+	void setRight()
+	{
+		left = false;
+		right = true;	
+		down = false;
+		up = false;
+		direction = GameScript.RIGHT;
+	}
+
+	void setUp()
+	{
+		left = false;
+		right = false;	
+		down = false;
+		up = true;
+		direction = GameScript.UP;
+	}
+
+	void setDown()
+	{
+		left = false;
+		right = false;	
+		down = true;
+		up = false;
+		direction = GameScript.DOWN;
 	}
 }

@@ -13,7 +13,7 @@ public class TeleporterScript : MonoBehaviour {
 		direction = d;
 	}
 
-	public int getDirection()
+	public int getFacingDirection()
 	{
 		return direction;
 	}
