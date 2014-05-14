@@ -313,14 +313,7 @@ public class SnakeScript : MonoBehaviour {
 			else
 			{
 				// snake tried to move to a non-empty cell
-				gameScript.setGameOver(true);
-				levelPassed = false;
-
-				// vibrate the device
-				Handheld.Vibrate ();
-
-				// flash the snake
-				InvokeRepeating("flashSnake", 0, 0.25f);
+				endGame();
 			}
 		}
 	}
@@ -348,64 +341,24 @@ public class SnakeScript : MonoBehaviour {
 		}
 		else if (otherCollider.gameObject.name == "Teleporter")
 		{
-			// get this teleporters matching teleporter so we can get its exit cell
-			Vector2 exit = otherCollider.gameObject.GetComponent<TeleporterScript>().getPair().GetComponent<TeleporterScript>().getExit();
-			row = (int)exit.x;
-			col = (int)exit.y;
-
-			updateHead();
-		}
-	}
-
-	void flashSnake()
-	{
-		// make the snake flash by setting the game objects of the snake to active and inactive
-		if (this.transform.gameObject.activeSelf)
-			this.transform.gameObject.SetActive(false);
-		else
-			this.transform.gameObject.SetActive(true);
-
-		foreach(Transform body in bodies)
-		{
-			if (body.gameObject.activeSelf)
-				body.gameObject.SetActive(false);
-			else
-				body.gameObject.SetActive(true);
-		}
-
-		if (tail.transform.gameObject.activeSelf)
-			tail.transform.gameObject.SetActive(false);
-		else
-			tail.transform.gameObject.SetActive(true);
-	}
-
-	void incrementSnake()
-	{
-		// increment the score
-		score += GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue();
-
-		body_parts++;
-		if (body_parts == body_limit)
-		{
-			// game won the user has passed this level
-			gameScript.setGameOver(true);
-			levelPassed = true;
-		}
-		else
-		{
-			// add a new body to the snake
-			eaten = true;
-			gameScript.moveApple();
-
-			// find a new time to display the coin
-			if (body_parts == coin_body_index)
+			if (direction == otherCollider.gameObject.GetComponent<TeleporterScript>().getDirection())
 			{
-				// display the coin
-				gameScript.displayCoin();
-				
-				number_of_coins--;
-				if (number_of_coins > 0)
-					setCoinBodyIndex();
+				// the snake is entering the correct face of the teleporter
+
+				// head is on the teleporter so update the grid to set it back to a teleporter
+				gameScript.updateGrid(row, col, GameScript.TELEPORTER);
+
+				// get this teleporters matching teleporter so we can get its exit cell
+				Vector2 exit = otherCollider.gameObject.GetComponent<TeleporterScript>().getPair().GetComponent<TeleporterScript>().getExit();
+				row = (int)exit.x;
+				col = (int)exit.y;
+
+				updateHead();
+			}
+			else if (!gameScript.isGameOver())
+			{
+				// the snake hit the teleporter from a side
+				endGame();
 			}
 		}
 	}
@@ -418,13 +371,13 @@ public class SnakeScript : MonoBehaviour {
 		// update the grid
 		gameScript.updateGrid(row, col, GameScript.SNAKE);
 	}
-
+	
 	void createBody()
 	{
 		// create a new body prefab
 		body = Instantiate(body) as Transform;
 		body.parent = parent;
-
+		
 		// add the body to the end of the snake before the tail
 		body.name = "body"+body_parts;
 		if (body_parts > 1)
@@ -433,7 +386,7 @@ public class SnakeScript : MonoBehaviour {
 			GameObject prev = GameObject.Find("body"+(body_parts-1));
 			body.position = prev.transform.position;
 			body.rotation = prev.transform.rotation;
-
+			
 			// add corner sprite if required
 			int dir = prev.GetComponent<BodyScript>().getDirection();
 			if (dir != tail_direction)
@@ -452,15 +405,39 @@ public class SnakeScript : MonoBehaviour {
 			// first body so it uses the head properties
 			body.position = transform.position;
 			body.GetComponent<BodyScript>().setDirection(tail_direction);
-			//body.rotation = transform.rotation;
 		}
 		bodies.Add(body);
 	}
 
-	// randomly choose when to display the coins based on the snake body length
-	void setCoinBodyIndex()
+	void incrementSnake()
 	{
-		coin_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
+		// increment the score
+		score += GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue();
+		
+		body_parts++;
+		if (body_parts == body_limit)
+		{
+			// game won the user has passed this level
+			gameScript.setGameOver(true);
+			levelPassed = true;
+		}
+		else
+		{
+			// add a new body to the snake
+			eaten = true;
+			gameScript.moveApple();
+			
+			// find a new time to display the coin
+			if (body_parts == coin_body_index)
+			{
+				// display the coin
+				gameScript.displayCoin();
+				
+				number_of_coins--;
+				if (number_of_coins > 0)
+					setCoinBodyIndex();
+			}
+		}
 	}
 
 	void updateSprites()
@@ -469,16 +446,16 @@ public class SnakeScript : MonoBehaviour {
 		if (body_parts == 0)
 		{
 			// tail follows head
-			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, transform.position));
 			tail_direction = direction;
+			tail.transform.rotation = Quaternion.Euler(gameScript.getRotation(tail_direction));
 		}
 		else
 		{
 			// tail follows the latest body part
 			GameObject current = GameObject.Find("body"+body_parts);
-			tail.transform.rotation = Quaternion.Euler(getRotation(tail.transform.position, current.transform.position));
 			tail_direction = current.GetComponent<BodyScript>().getDirection();
-		
+			tail.transform.rotation = Quaternion.Euler(gameScript.getRotation(tail_direction));
+			
 			// update the body parts
 			GameObject next = null;
 			int currentDirection;
@@ -489,7 +466,7 @@ public class SnakeScript : MonoBehaviour {
 				// determine if the current body needs to change its default sprite
 				current = GameObject.Find("body"+i);
 				currentDirection = current.GetComponent<BodyScript>().getDirection();
-
+				
 				if (i == 1)
 				{
 					// reached the first body part so it follows the head
@@ -501,7 +478,7 @@ public class SnakeScript : MonoBehaviour {
 					next =  GameObject.Find("body"+(i-1));
 					nextDirection = next.GetComponent<BodyScript>().getDirection();
 				}
-		
+				
 				if (currentDirection != nextDirection)
 				{
 					// this body needs to change direction so it is on a corner => change its sprite
@@ -514,13 +491,32 @@ public class SnakeScript : MonoBehaviour {
 				{
 					// the directions are the same so leave as a normal body but change its rotation
 					current.gameObject.GetComponent<SpriteRenderer>().sprite = body_normal;
-					current.transform.rotation = Quaternion.Euler(getRotation(current.transform.position, next.transform.position));
+					current.transform.rotation = Quaternion.Euler(gameScript.getRotation(currentDirection));
 				}
 			}
 		}
-
+		
 		// update the heads rotation
-		transform.rotation = Quaternion.Euler(new Vector3(0,0,gameScript.getRotation(direction)));
+		transform.rotation = Quaternion.Euler(gameScript.getRotation(direction));
+	}
+
+	// ends the game
+	void endGame()
+	{
+		gameScript.setGameOver(true);
+		levelPassed = false;
+		
+		// vibrate the device
+		Handheld.Vibrate ();
+		
+		// flash the snake
+		InvokeRepeating("flashSnake", 0, 0.25f);
+	}
+
+	// randomly choose when to display the coins based on the snake body length
+	void setCoinBodyIndex()
+	{
+		coin_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
 	}
 
 	int getCorner(int currentDirection, int newDirection)
@@ -542,55 +538,33 @@ public class SnakeScript : MonoBehaviour {
 			return 270;
 	}
 
-	Vector3 getRotation(Vector3 current, Vector3 future)
-	{
-		// returns a Vector for the rotation the sprite should apply based on its
-		// current and future positions
-		
-		int curRow = Mathf.RoundToInt(current.y-transform.parent.position.y);
-		int curCol = Mathf.RoundToInt(current.x-transform.parent.position.x);
-		
-		// determine the change in direction
-		int newRow = Mathf.RoundToInt(future.y-transform.parent.position.y);
-		int z = 0;
-		if (newRow != curRow)
-		{
-			// vertical movement
-			if (newRow > curRow)
-			{
-				// up
-				z = 270;
-			}
-			else
-			{
-				// down
-				z = 90;
-			}
-		}
-		else
-		{
-			int newCol = Mathf.RoundToInt(future.x-transform.parent.position.x);
-			// horizontal movement
-			if (newCol > curCol)
-			{
-				// right
-				z = 180;
-			}
-			else
-			{
-				// left
-				z = 0;
-			}
-		}
-		
-		return new Vector3(0,0,z);
-	}
-
 	void updateGridFromTail()
 	{
 		// update the grid based on the tail position before it moves
 		int row = Mathf.RoundToInt(tail.position.y-transform.parent.position.y);
 		int col = Mathf.RoundToInt(tail.position.x-transform.parent.position.x);
 		gameScript.updateGrid(row, col, GameScript.EMPTY);
+	}
+
+	void flashSnake()
+	{
+		// make the snake flash by setting the game objects of the snake to active and inactive
+		if (this.transform.gameObject.activeSelf)
+			this.transform.gameObject.SetActive(false);
+		else
+			this.transform.gameObject.SetActive(true);
+		
+		foreach(Transform body in bodies)
+		{
+			if (body.gameObject.activeSelf)
+				body.gameObject.SetActive(false);
+			else
+				body.gameObject.SetActive(true);
+		}
+		
+		if (tail.transform.gameObject.activeSelf)
+			tail.transform.gameObject.SetActive(false);
+		else
+			tail.transform.gameObject.SetActive(true);
 	}
 }

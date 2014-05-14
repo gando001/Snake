@@ -15,15 +15,7 @@ public class TeleporterScript : MonoBehaviour {
 
 	public int getDirection()
 	{
-		// return the opposite direction to get to the exit cell
-		if (direction == GameScript.LEFT)
-			return GameScript.RIGHT;
-		else if (direction == GameScript.RIGHT)
-			return GameScript.LEFT;
-		else if (direction == GameScript.UP)
-			return GameScript.DOWN;
-		else
-			return GameScript.UP;
+		return direction;
 	}
 
 	public void setRowAndCol(int r, int c)

@@ -11,14 +11,14 @@ public class GameScript : MonoBehaviour {
 	public GameObject snake;
 	public GameObject coin;
 	public GameObject teleporter_red;
+	public GameObject teleporter_green;
+	public GameObject teleporter_blue;
 
 	// level values
 	public const int EMPTY = 0;
 	public const int FRAME = 1;
 	public const int SNAKE = 2;
-	public const int TELEPORTER_RED = 3;
-	public const int TELEPORTER_GREEN = 4;
-	public const int TELEPORTER_BLUE = 5;
+	public const int TELEPORTER = 3;
 
 	// direction values
 	public const int LEFT = 4;
@@ -64,21 +64,26 @@ public class GameScript : MonoBehaviour {
 
 	public void updateGrid(int row, int col, int value)
 	{
-		if (value == SNAKE)
+		if (grid[row,col] != TELEPORTER)
 		{
-			// update the snake head position in the grid
-			grid[row, col] = SNAKE;
+			// only update grid if we are not dealing with a teleporter 
 
-			// remove the empty space as it is no longer empty
-			empty_spaces.Remove(new Vector2(row, col));
-		}
-		else
-		{
-			// update the grid with a new empty position as the tail has moved
-			grid[row, col] = EMPTY;
+			if (value == SNAKE)
+			{
+				// update the snake head position in the grid
+				grid[row, col] = SNAKE;
 
-			// store the empty space as a vector (row,col) since the tail moved
-			empty_spaces.Add(new Vector2(row, col));
+				// remove the empty space as it is no longer empty
+				empty_spaces.Remove(new Vector2(row, col));
+			}
+			else
+			{
+				// update the grid with a new empty position as the tail has moved
+				grid[row, col] = EMPTY;
+
+				// store the empty space as a vector (row,col) since the tail moved
+				empty_spaces.Add(new Vector2(row, col));
+			}
 		}
 	}
 
@@ -93,8 +98,8 @@ public class GameScript : MonoBehaviour {
 
 	public bool isValidMove(int row, int col)
 	{
-		// returns true if the given row and col in the grid is not a frame
-		if (grid[row,col] != FRAME)
+		// returns true if the given row and col in the grid is empty or a teleporter
+		if (grid[row,col] == EMPTY || grid[row,col] == TELEPORTER)
 			return true;
 		return false;
 	}
@@ -127,16 +132,19 @@ public class GameScript : MonoBehaviour {
 	}
 
 	// return the rotation based on the given direction
-	public int getRotation(int direction)
+	public Vector3 getRotation(int direction)
 	{
+		int z = 0;
 		if (direction == GameScript.LEFT)
-			return 0;
+			z = 0;
 		else if (direction == GameScript.RIGHT)
-			return 180;
+			z = 180;
 		else if (direction == GameScript.UP)
-			return 270;
+			z = 270;
 		else
-			return 90;
+			z = 90;
+
+		return new Vector3(0,0,z);
 	}
 
 
@@ -277,21 +285,31 @@ public class GameScript : MonoBehaviour {
 					// get the id and direction from the number - XXX color, id (color+id), direction
 					int id = int.Parse(val.ToString().Substring(0,2));
 					int dir = int.Parse(val.ToString().Substring(2,1));
+
 					if (val >= 311 && val <= 394)
 					{
-						// add a red teleporter
-						teleporter_red = Instantiate(teleporter_red) as GameObject;
-						teleporter_red.transform.parent = parent;
-						teleporter_red.transform.position =  new Vector3(current_col + x, current_row + y, z);
-						teleporter_red.GetComponent<TeleporterScript>().setRowAndCol(current_row, current_col);
-						teleporter_red.name = "Teleporter";
-						grid[current_row, current_col] = TELEPORTER_RED;
-						current_teleporter = teleporter_red;
-
-						// direction
-						teleporter_red.transform.rotation = Quaternion.Euler(new Vector3(0,0,getRotation(dir)));
-						teleporter_red.GetComponent<TeleporterScript>().setDirection(dir);
-					}		                
+						// red
+						current_teleporter = Instantiate(teleporter_red) as GameObject;
+					}		
+					else if (val >= 411 && val <= 494)
+					{
+						// green
+						current_teleporter = Instantiate(teleporter_green) as GameObject;
+					}
+					else
+					{
+						// blue
+						current_teleporter = Instantiate(teleporter_blue) as GameObject;
+					}
+					
+					// set some common properties
+					current_teleporter.transform.parent = parent;
+					current_teleporter.transform.position =  new Vector3(current_col + x, current_row + y, z);
+					current_teleporter.GetComponent<TeleporterScript>().setRowAndCol(current_row, current_col);
+					current_teleporter.name = "Teleporter";
+					grid[current_row, current_col] = TELEPORTER;
+					current_teleporter.transform.rotation = Quaternion.Euler(getRotation(dir));
+					current_teleporter.GetComponent<TeleporterScript>().setDirection(dir);
 
 					// determine whether we have found a pairing teleporter
 					if (!teleporters.Contains(id))
