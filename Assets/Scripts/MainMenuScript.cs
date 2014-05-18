@@ -35,7 +35,7 @@ public class MainMenuScript : MonoBehaviour {
 		if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY+buttonHeight, buttonWidth, buttonHeight), "Help"))
 		{	
 			// Load the level				
-			Application.LoadLevel("help");
+			Application.LoadLevel("wheeltester");
 		}
 
 		if (GUI.Button(new Rect(centreX-buttonWidth/2, centreY+buttonHeight*2, buttonWidth, buttonHeight), "Quit"))

@@ -6,6 +6,7 @@ public class SnakeScript : MonoBehaviour {
 	// initial speed values
 	public Transform tail;
 	public Transform body;
+	public Transform scoreEffect;
 	public Sprite body_corner;
 	public Sprite body_normal;
 
@@ -126,7 +127,7 @@ public class SnakeScript : MonoBehaviour {
 	void Start () 
 	{
 		score = 0;
-		body_limit = 50;
+		body_limit = 30;
 		body_parts = 0;
 		lastUpdate = 0;
 		bodies = new ArrayList();
@@ -140,7 +141,7 @@ public class SnakeScript : MonoBehaviour {
 	void Update () 
 	{
 		// user input
-		/*if (Input.touchCount > 0) 
+		if (Input.touchCount > 0) 
 		{
 			Touch touch = Input.GetTouch(0);
 
@@ -196,7 +197,7 @@ public class SnakeScript : MonoBehaviour {
 				}
 				getUserInput =false;
 			}
-		}*/
+		}/*
 		
 			// Use for testing in Unity not on device
 			// get the keyboard values and calculate the movement
@@ -224,7 +225,7 @@ public class SnakeScript : MonoBehaviour {
 			{
 				// down	
 				setDown();
-			}
+			}*/
 	}
 
 	void FixedUpdate(){
@@ -305,14 +306,15 @@ public class SnakeScript : MonoBehaviour {
 
 		// determine the other collider
 		if (otherCollider.gameObject.name == "Apple")
-		{
+		{	
+			incrementScore(GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue());
+
 			// increment the snake
 			incrementSnake();
 		}
 		else if (otherCollider.gameObject.name == "Coin")
 		{
-			// increment the score
-			score += GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue();
+			incrementScore(GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue());
 
 			coins_collected++;
 
@@ -391,9 +393,6 @@ public class SnakeScript : MonoBehaviour {
 
 	void incrementSnake()
 	{
-		// increment the score
-		score += GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue();
-		
 		body_parts++;
 		if (body_parts == body_limit)
 		{
@@ -524,6 +523,20 @@ public class SnakeScript : MonoBehaviour {
 		int row = Mathf.RoundToInt(tail.position.y-transform.parent.position.y);
 		int col = Mathf.RoundToInt(tail.position.x-transform.parent.position.x);
 		gameScript.updateGrid(row, col, GameScript.EMPTY);
+	}
+
+	void incrementScore(int v)
+	{
+		// increment the score
+		score += v;
+
+		// animate the score
+		// set the parent, position and scale
+		scoreEffect = Instantiate(scoreEffect) as Transform;
+		scoreEffect.parent = parent;
+		scoreEffect.name = "scoreEffect";
+		scoreEffect.position = Camera.main.WorldToScreenPoint(new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z));
+	//	scoreEffect.localScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
 	}
 
 	void flashSnake()

@@ -577,9 +577,8 @@ public class GameScript : MonoBehaviour {
 					// increment the level
 					level++;
 
-					// increase the speed every 5 levels
-					if (level % 5 == 0)
-						currentSpeed -= 0.05f;
+					// increase the speed every level
+					currentSpeed -= 0.01f;
 
 					// save the game state
 					saveGame();

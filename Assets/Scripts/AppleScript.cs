@@ -8,13 +8,13 @@ public class AppleScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		score = 50;
+		score = 20;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		// rotate at 90 degrees per second
-		transform.Rotate(Vector3.up * Time.deltaTime*90);
+		//transform.Rotate(Vector3.up * Time.deltaTime*90);
 	}
 
 	public int getScoreValue()
