@@ -44,6 +44,7 @@ public class GameScript : MonoBehaviour {
 	private int currentScore;
 	private float currentSpeed;
 	private int currentCoins;
+	private int visibleScore;
 
 	// HUD variables
 	private float hudWidth;
@@ -145,6 +146,12 @@ public class GameScript : MonoBehaviour {
 			z = 90;
 
 		return new Vector3(0,0,z);
+	}
+
+	// animates the score changes displayed on the HUD using iTween's ValueTo
+	public void animateHUDScore() 
+	{	
+		iTween.ValueTo (gameObject, iTween.Hash( "from", visibleScore,  "to" , snake.GetComponent<SnakeScript>().getScore(), "onupdate" , "ChangeVisibleScore","time" , 0.5 ));
 	}
 
 
@@ -468,6 +475,8 @@ public class GameScript : MonoBehaviour {
 		currentScore = PlayerPrefs.GetInt(SCORE);
 		currentSpeed = PlayerPrefs.GetFloat(SPEED);
 		currentCoins = PlayerPrefs.GetInt(COINS);
+
+		visibleScore = currentScore;
 	}
 	
 	// saves the game state 
@@ -524,7 +533,7 @@ public class GameScript : MonoBehaviour {
 		}
 
 		// draw the score box in the centre right
-		GUI.Box(new Rect(hudX+(2*hudWidth),hudY,hudWidth,hudHeight), "Score "+snake.GetComponent<SnakeScript>().getScore());
+		GUI.Box(new Rect(hudX+(2*hudWidth),hudY,hudWidth,hudHeight), "Score "+visibleScore);
 	}
 
 	// draws the pause/play menu
@@ -614,5 +623,11 @@ public class GameScript : MonoBehaviour {
 				}
 			}
 		}
+	}
+
+	// Changes the currently visible score on the HUD. Called every time iTween changes my
+	// visibleScore variable
+	void ChangeVisibleScore (int i) {
+		visibleScore = i;
 	}
 }

@@ -37,7 +37,7 @@ public class WheelTestScript : MonoBehaviour {
 	{
 		if (!isSwipe)
 		{
-			if (Input.touchCount > 0) 
+			/*if (Input.touchCount > 0) 
 			{
 				Touch touch = Input.GetTouch(0);
 				
@@ -62,7 +62,7 @@ public class WheelTestScript : MonoBehaviour {
 						isSwipe = true;
 				}
 			}
-				/*
+				*/
 			if(Input.GetMouseButtonDown(0))
 			{
 				// save the y point and time when the mouse was pressed
@@ -81,7 +81,7 @@ public class WheelTestScript : MonoBehaviour {
 				print (speed);
 				if (speed > MIN_SPEED)
 					isSwipe = true;
-			}*/
+			}
 		}
 
 		if (isSwipe && speed > 0)

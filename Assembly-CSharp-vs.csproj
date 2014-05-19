@@ -57,6 +57,10 @@
      <Compile Include="Assets\Scripts\SnakeScript.cs" />
      <Compile Include="Assets\Scripts\TeleporterScript.cs" />
      <Compile Include="Assets\WheelTestScript.cs" />
+     <Compile Include="Assets\iTween\Plugins\iTween.cs" />
+     <Compile Include="Assets\iTween\Sample\MoveSample.cs" />
+     <Compile Include="Assets\iTween\Sample\RotateSample.cs" />
+     <Compile Include="Assets\iTween\Sample\SampleInfo.cs" />
      <None Include="Assets\Resources\Levels\level_17.txt" />
      <None Include="Assets\Resources\Levels\level_12.txt" />
      <None Include="Assets\Resources\Levels\level_8.txt" />
@@ -75,6 +79,7 @@
      <None Include="Assets\Resources\Levels\level_15.txt" />
      <None Include="Assets\Resources\Levels\level_14.txt" />
      <None Include="Assets\Resources\Levels\level_13.txt" />
+     <None Include="Assets\iTween\ReadMe!\ReadMe!.txt" />
      <None Include="Assets\Resources\Levels\level_5.txt" />
      <None Include="Assets\Resources\Levels\level_2.txt" />
      <None Include="Assets\Resources\Levels\level_4.txt" />
