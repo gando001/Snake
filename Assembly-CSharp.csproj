@@ -48,6 +48,7 @@
   <ItemGroup>
      <Compile Include="Assets\DamperTestScript.cs" />
      <Compile Include="Assets\Scripts\AppleScript.cs" />
+     <Compile Include="Assets\Scripts\BackgroundScript.cs" />
      <Compile Include="Assets\Scripts\BodyScript.cs" />
      <Compile Include="Assets\Scripts\BonusScript.cs" />
      <Compile Include="Assets\Scripts\CameraScript.cs" />

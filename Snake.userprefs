@@ -1,14 +1,15 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/SnakeScript.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/BackgroundScript.cs">
     <Files>
-      <File FileName="Assets/Scripts/GameScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/SnakeScript.cs" Line="548" Column="85" />
-      <File FileName="Assets/Scripts/TeleporterScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/GameScript.cs" Line="436" Column="1" />
+      <File FileName="Assets/Scripts/SnakeScript.cs" Line="472" Column="14" />
+      <File FileName="Assets/Scripts/TeleporterScript.cs" Line="48" Column="3" />
       <File FileName="Assets/Scripts/CoinScript.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/AppleScript.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/BonusScript.cs" Line="1" Column="1" />
       <File FileName="Assets/WheelTestScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/BackgroundScript.cs" Line="15" Column="10" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

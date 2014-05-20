@@ -182,9 +182,6 @@ public class GameScript : MonoBehaviour {
 		hudY = GameObject.Find("Middleground").transform.position.y+rows;
 		hudHeight = Screen.height/rows;
 
-		// create the background image
-		createBackground();
-
 		// create the level
 		createLevel();
 
@@ -281,6 +278,13 @@ public class GameScript : MonoBehaviour {
 				}
 				else if (val == EMPTY)
 				{
+					// add a background element
+					background = Instantiate(background) as GameObject;
+					background.transform.parent = parent;
+					background.transform.position =  new Vector3(current_col + x, current_row + y, z);
+					background.name = "Background";
+					background.gameObject.GetComponent<BackgroundScript>().setSprite();
+
 					// store the empty space as a vector (row,col)
 					empty_spaces.Add(new Vector2(current_row, current_col));
 					grid[current_row, current_col] = EMPTY;
@@ -430,26 +434,6 @@ public class GameScript : MonoBehaviour {
 	Vector2 getRandomEmptySpace()
 	{
 		return (Vector2)empty_spaces[Random.Range(0, empty_spaces.Count)];
-	}
-
-	// creates the background image
-	void createBackground()
-	{
-		// make a 4x1 grid of the background image
-		Transform parent = GameObject.Find("Background").transform;
-		float x = parent.position.x - 7.5f;
-		float y = parent.position.y;
-		float z = parent.position.z;
-		
-		for (int i=0; i<3; i++)
-		{
-			background = Instantiate(background) as GameObject;
-			background.transform.parent = parent;
-			background.transform.name = "background"+(i+1);
-			background.transform.localScale = new Vector3(1.5f, 2.75f, 0);
-			background.transform.position =  new Vector3(x, y, z);
-			x += 7.5f;
-		}
 	}
 
 	// create the coins for the level
