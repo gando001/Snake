@@ -249,6 +249,9 @@ public class GameScript : MonoBehaviour {
 		float y = (float)parent.position.y;
 		float z = (float)parent.position.z;
 
+		// the backround or empty objects will be a child of the background
+		Transform bk_parent = GameObject.Find("Background").transform;
+
 		// read all of the lines into an array
 		TextAsset level_file = (TextAsset)Resources.Load("Levels/level_"+level);
 		string[] lines = level_file.text.Split("\n"[0]);
@@ -280,8 +283,8 @@ public class GameScript : MonoBehaviour {
 				{
 					// add a background element
 					background = Instantiate(background) as GameObject;
-					background.transform.parent = parent;
-					background.transform.position =  new Vector3(current_col + x, current_row + y, z);
+					background.transform.parent = bk_parent;
+					background.transform.position =  new Vector3(current_col + bk_parent.position.x, current_row + bk_parent.position.y, bk_parent.position.z);
 					background.name = "Background";
 					background.gameObject.GetComponent<BackgroundScript>().setSprite();
 
@@ -461,6 +464,8 @@ public class GameScript : MonoBehaviour {
 		currentCoins = PlayerPrefs.GetInt(COINS);
 
 		visibleScore = currentScore;
+
+		level = 16;
 	}
 	
 	// saves the game state 
