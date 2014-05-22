@@ -35,6 +35,12 @@ public class SnakeScript : MonoBehaviour {
 	private int number_of_coins;
 	private int coin_body_index;
 	private int coins_collected;
+
+	// bonus pick ups
+	private int number_of_pick_ups;
+	private int bonus_body_index;
+	private int bonus_collected;
+	private bool bonusWheelShowing;
 	
 	public void setHeadStartingPosition(int r, int c, int direction)
 	{
@@ -121,6 +127,21 @@ public class SnakeScript : MonoBehaviour {
 		return coins_collected;
 	}
 
+	public void setNumberOfBonusPickUps(int v)
+	{
+		number_of_pick_ups = v;
+	}
+
+	public void setBonusWheelShowing(bool v)
+	{
+		bonusWheelShowing = v;
+	}
+
+	public bool isBonusWheelShowing()
+	{
+		return bonusWheelShowing;
+	}
+
 
 
 	// Use this for initialization
@@ -132,16 +153,26 @@ public class SnakeScript : MonoBehaviour {
 		lastUpdate = 0;
 		bodies = new ArrayList();
 		getUserInput = true;
+		bonusWheelShowing = false;
 
-		coins_collected = 0;
-		setCoinBodyIndex();
+		if (gameScript.isCoinLevel() && number_of_coins > 0)
+		{
+			coins_collected = 0;
+			setCoinBodyIndex();
+		}
+
+		if (gameScript.isPickUpLevel() && number_of_pick_ups > 0)
+		{
+			bonus_collected = 0;
+			setBonusBodyIndex();
+		}
 	}
 	
 	// Update is called once per frame
 	void Update () 
 	{
 		// user input
-		/*if (Input.touchCount > 0) 
+		/*if (Input.touchCount > 0 && !isBonusWheelShowing()) 
 		{
 			Touch touch = Input.GetTouch(0);
 
@@ -198,7 +229,9 @@ public class SnakeScript : MonoBehaviour {
 				getUserInput =false;
 			}
 		}*/
-		
+
+		if (!isBonusWheelShowing())
+		{
 			// Use for testing in Unity not on device
 			// get the keyboard values and calculate the movement
 			float inputX = Input.GetAxis ("Horizontal");
@@ -226,6 +259,7 @@ public class SnakeScript : MonoBehaviour {
 				// down	
 				setDown();
 			}
+		}
 	}
 
 	void FixedUpdate(){
@@ -234,7 +268,7 @@ public class SnakeScript : MonoBehaviour {
 		// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
 
 		// update when it is time to and the game isn't over
-		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver())
+		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver() && !isBonusWheelShowing())
 		{	
 			// continue in the same direction
 			if (left)
@@ -321,6 +355,16 @@ public class SnakeScript : MonoBehaviour {
 			// remove the coin
 			gameScript.coin.SetActive(false);
 		}
+		else if (otherCollider.gameObject.name == "Bonus")
+		{	
+			bonus_collected++;
+
+			// remove the bonus pick up
+			gameScript.bonus.SetActive(false);
+
+			// show the bonus wheel
+			gameScript.displayBonusWheel();
+		}
 		else if (otherCollider.gameObject.name == "Teleporter")
 		{
 			if (direction == otherCollider.gameObject.GetComponent<TeleporterScript>().getFacingDirection())
@@ -406,7 +450,7 @@ public class SnakeScript : MonoBehaviour {
 			eaten = true;
 			gameScript.moveApple();
 			
-			// find a new time to display the coin
+			// check if its time to show the coin
 			if (body_parts == coin_body_index)
 			{
 				// display the coin
@@ -415,6 +459,17 @@ public class SnakeScript : MonoBehaviour {
 				number_of_coins--;
 				if (number_of_coins > 0)
 					setCoinBodyIndex();
+			}
+
+			// check if its time to show the pick up
+			if (body_parts == bonus_body_index)
+			{
+				// display the pick up
+				gameScript.displayBonusPickUp();
+
+				number_of_pick_ups--;
+				if (number_of_pick_ups > 0)
+					setBonusBodyIndex();
 			}
 		}
 	}
@@ -498,6 +553,12 @@ public class SnakeScript : MonoBehaviour {
 		coin_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
 	}
 
+	// randomly choose when to display the bonus based on the snake body length
+	void setBonusBodyIndex()
+	{
+		bonus_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
+	}
+
 	int getCorner(int currentDirection, int newDirection)
 	{
 		// returns the rotation value of the z axis required for a body part on the corner
@@ -533,31 +594,13 @@ public class SnakeScript : MonoBehaviour {
 		// animate the HUD score
 		gameScript.animateHUDScore();
 
-		// create the score object
+		// create the score object where the apple was
 		scoreText = Instantiate(scoreText) as Transform;
 		scoreText.parent = parent;
-		scoreText.name = "scoreText_"+body_parts;
+		scoreText.name = "scoreText";
 		scoreText.guiText.text = "+"+v;
 		scoreText.position = Camera.main.WorldToViewportPoint(new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z));
 		scoreText.gameObject.SetActive(true);
-
-		if (!isApple)
-			scoreText.guiText.color = Color.yellow;
-
-		// animate the score by raising it vertically
-		iTween.ValueTo(gameObject, iTween.Hash("from", Vector2.zero, "to", new Vector2(0,30), "onupdate", "raiseScore", "oncomplete", "reset", "time", 0.5));
-	}
-
-	void raiseScore(Vector2 v)
-	{
-		// raise the gui text
-		scoreText.gameObject.guiText.pixelOffset = v;
-	}
-	
-	void reset()
-	{
-		// set the gameobject to inactive
-		scoreText.gameObject.SetActive(false);
 	}
 
 	void flashSnake()

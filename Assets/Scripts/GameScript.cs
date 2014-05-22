@@ -10,6 +10,8 @@ public class GameScript : MonoBehaviour {
 	public GameObject apple;
 	public GameObject snake;
 	public GameObject coin;
+	public GameObject bonus;
+	public GameObject bonus_wheel;
 	public GameObject teleporter_red;
 	public GameObject teleporter_green;
 	public GameObject teleporter_blue;
@@ -132,6 +134,23 @@ public class GameScript : MonoBehaviour {
 		}
 	}
 
+	// displays the bonus pick up in the level
+	public void displayBonusPickUp()
+	{
+		if (bonus.activeSelf == false)
+		{
+			// set the bonus to active and reset its values
+			bonus.SetActive(true);
+			bonus.GetComponent<BonusScript>().reset();
+			
+			// get a random empty space from the array 0 - count
+			Vector2 space = getRandomEmptySpace();
+			
+			// set the bonus to the random position
+			bonus.transform.position = new Vector3((space.y+bonus.transform.parent.position.x), (space.x+bonus.transform.parent.position.y), bonus.transform.parent.position.z);
+		}
+	}
+
 	// return the rotation based on the given direction
 	public Vector3 getRotation(int direction)
 	{
@@ -152,6 +171,34 @@ public class GameScript : MonoBehaviour {
 	public void animateHUDScore() 
 	{	
 		iTween.ValueTo (gameObject, iTween.Hash( "from", visibleScore,  "to" , snake.GetComponent<SnakeScript>().getScore(), "onupdate" , "ChangeVisibleScore","time" , 0.5 ));
+	}
+
+	public bool isCoinLevel()
+	{
+		if (level > 2)
+			return true;
+		return false;
+	}
+
+	public bool isPickUpLevel()
+	{
+		if (level > 4)
+			return true;
+		return false;
+	}
+
+	public void displayBonusWheel()
+	{
+		// freeze the snake
+		snake.GetComponent<SnakeScript>().setBonusWheelShowing(true);
+		
+		// freeze any coin
+		coin.GetComponent<CoinScript>().setFreeze(true);
+
+		// create the wheel
+		bonus_wheel = Instantiate(bonus_wheel) as GameObject;
+		bonus_wheel.transform.parent = GameObject.Find("Foreground").transform;
+		bonus_wheel.name = "Wheel";
 	}
 
 
@@ -185,8 +232,17 @@ public class GameScript : MonoBehaviour {
 		// create the level
 		createLevel();
 
-		// create the coin(s)
-		createCoins();
+		if (isCoinLevel())
+		{
+			// create the coin(s)
+			createCoins();
+		}
+
+		if (isPickUpLevel())
+		{
+			// create the bonus pick ups
+			createPickUps();
+		}
 		
 		// create the snake
 		snake = Instantiate(snake) as GameObject;
@@ -427,16 +483,46 @@ public class GameScript : MonoBehaviour {
 		// set the snakes speed saved from the game state
 		snake.GetComponent<SnakeScript>().setSpeed(currentSpeed);
 
+		// set the number of coins saved from the game state
 		snake.GetComponent<SnakeScript>().setCoinsCollected(currentCoins);
 
-		// randomly choose how many coins this level will have (1-3)
-		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(1,4-currentCoins));
+		// randomly choose how many coins this level will have (0-3)
+		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(0,4-currentCoins));
+
+		// randomly choose how many pick ups this level will have (0-4)
+		snake.GetComponent<SnakeScript>().setNumberOfBonusPickUps(Random.Range(0,5));
 	}
 
 	// returns a random empty space from the grid
 	Vector2 getRandomEmptySpace()
 	{
-		return (Vector2)empty_spaces[Random.Range(0, empty_spaces.Count)];
+		// ensure the space is actually empty
+		Vector2 space = (Vector2)empty_spaces[Random.Range(0, empty_spaces.Count)];
+		Transform parent = GameObject.Find("Foreground").transform;
+		Vector3 pos;
+		bool valid = false;
+		while (!valid)
+		{
+			pos = new Vector3((space.y+parent.position.x), (space.x+parent.position.y), parent.position.z);
+			valid = true;
+
+			// check if an apple is at this position
+			if (apple.transform.position == pos)
+				valid = false;
+
+			// check if a coin is at this position
+			if (isCoinLevel() && coin.transform.position == pos)
+				valid = false;
+
+			// check if a bonus pick up is at this position
+			if (isPickUpLevel() && bonus.transform.position == pos)
+				valid = false;
+
+			if (!valid){
+				space = (Vector2)empty_spaces[Random.Range(0, empty_spaces.Count)]; print ("s");}
+		}
+		
+		return space;
 	}
 
 	// create the coins for the level
@@ -446,7 +532,21 @@ public class GameScript : MonoBehaviour {
 		coin.transform.parent = GameObject.Find("Foreground").transform;
 		coin.name = "Coin";
 		coin.SetActive(false);
+		this.displayCoin();
 	}
+
+	// create the bonus pick ups for the level
+	void createPickUps()
+	{
+		bonus = Instantiate(bonus) as GameObject;
+		bonus.transform.parent = GameObject.Find("Foreground").transform;
+		bonus.name = "Bonus";
+		bonus.SetActive(false);
+		this.displayBonusPickUp();
+	}
+
+
+
 
 	// loads the game state as defined by the saved state
 	void loadGame()
@@ -493,6 +593,9 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.SetFloat(SPEED, 0.5f);
 		PlayerPrefs.SetInt(COINS, 0);
 	}
+
+
+
 	
 	// draws the HUD
 	void drawHUD()
