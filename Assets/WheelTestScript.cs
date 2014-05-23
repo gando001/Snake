@@ -4,11 +4,12 @@ using System.Collections;
 public class WheelTestScript : MonoBehaviour {
 
 	private bool isSwipe;
+	private bool isSpinning;
 
 	// speed
 	private float speed;
-	private const int MIN_SPEED = 5;
-	private const int MAX_SPEED = 100;
+	private const int MIN_SPEED = 500;
+	private const int MAX_SPEED = 1000;
 
 	// physics variables
 	private float startY;
@@ -19,8 +20,9 @@ public class WheelTestScript : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		speed = -1;
+		speed = 0;
 		isSwipe = false;
+		isSpinning = false;
 	}
 
 	void OnGUI ()
@@ -35,7 +37,7 @@ public class WheelTestScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		if (!isSwipe)
+		if (!isSwipe && Time.timeScale != 0)
 		{
 			/*if (Input.touchCount > 0) 
 			{
@@ -54,12 +56,14 @@ public class WheelTestScript : MonoBehaviour {
 					endY =  Input.GetTouch(0).position.y - startY;
 					endTime = Time.time - startTime;
 					
-					// speed is distance divided by time - divide to add sensitivity
-					speed = Mathf.Abs((endY/endTime)/MAX_SPEED);
-					speed = Mathf.Min(MAX_SPEED, speed);
+					// speed is distance divided by time
+					speed = Mathf.Abs(endY/endTime);
 
 					if (speed > MIN_SPEED)
+					{
 						isSwipe = true;
+						isSpinning = true;
+					}
 				}
 			}
 				*/
@@ -75,44 +79,26 @@ public class WheelTestScript : MonoBehaviour {
 				endY =  Input.mousePosition.y - startY;
 				endTime = Time.time - startTime;
 
-				// speed is distance divided by time - divide to add sensitivity
-				speed = Mathf.Abs((endY/endTime)/MAX_SPEED);
-				speed = Mathf.Min(MAX_SPEED, speed);
+				// speed is distance divided by time
+				speed = Mathf.Abs(endY/endTime);
+
 				print (speed);
 				if (speed > MIN_SPEED)
+				{
 					isSwipe = true;
+					isSpinning = true;
+				}
 			}
-		}
 
-		if (isSwipe && speed > 0)
-		{
-			if (endY < startY)
-				transform.Rotate(Vector3.up * speed);
-			else
-				transform.Rotate(Vector3.down * speed);
-		}
-	}
-
-	// FixedUpdate() is called at every fixed framerate frame. 
-	void FixedUpdate () 
-	{	
-		if (isSwipe && speed > 0)
-		{
-			if (speed > MAX_SPEED/2)
-				speed -= 5;
-			else if (speed > MAX_SPEED/4)
-				speed -= 2.5f;
-			else if (speed > 17.5f)
-				speed -= 1f;
-			else if (speed > 10)
-				speed -= 0.5f;
-			else if (speed > 2.5f)
-				speed -= 0.05f;
-			else if (speed > 1)
-				speed -= 0.01f;
-			else
-				speed -= 0.005f;
-		//	print (speed);
+			if (isSpinning)
+			{
+				float z = 10;
+				if (endY < startY)
+					z = -z;
+				rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
+				rigidbody.AddTorque(new Vector3(0,0,z) * speed);
+				isSpinning = false;
+			}
 		}
 	}
 }
