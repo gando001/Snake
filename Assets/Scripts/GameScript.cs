@@ -198,7 +198,15 @@ public class GameScript : MonoBehaviour {
 		// create the wheel
 		bonus_wheel = Instantiate(bonus_wheel) as GameObject;
 		bonus_wheel.transform.parent = GameObject.Find("Foreground").transform;
-		bonus_wheel.name = "Wheel";
+		bonus_wheel.name = "Bonus Wheel";
+		bonus_wheel.SetActive(true);
+	}
+
+	public void hideBonusWheel() 
+	{
+		bonus_wheel.SetActive(false);
+
+		Invoke("resume", 2);
 	}
 
 
@@ -592,6 +600,15 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.SetInt(SCORE, 0);
 		PlayerPrefs.SetFloat(SPEED, 0.5f);
 		PlayerPrefs.SetInt(COINS, 0);
+	}
+
+	void resume()
+	{	
+		// unfreeze the snake
+		snake.GetComponent<SnakeScript>().setBonusWheelShowing(false);
+		
+		// unfreeze any coin
+		coin.GetComponent<CoinScript>().setFreeze(false);
 	}
 
 

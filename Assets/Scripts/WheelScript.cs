@@ -5,6 +5,8 @@ public class WheelScript : MonoBehaviour {
 
 	private bool isSwipe;
 	private bool isSpinning;
+	private bool isFinished;
+	private string text;
 
 	// speed
 	private float speed;
@@ -17,12 +19,24 @@ public class WheelScript : MonoBehaviour {
 	private float endY;
 	private float endTime;
 
-	// Use this for initialization
-	void Start () 
+	public void resetWheel()
 	{
 		speed = 0;
 		isSwipe = false;
 		isSpinning = false;
+		isFinished = false;
+	}
+
+	public void displayResult(string txt)
+	{
+		text = txt;
+		isFinished = true;
+	}
+
+	// Use this for initialization
+	void Start () 
+	{
+		resetWheel();
 	}
 
 	void OnGUI ()
@@ -31,6 +45,14 @@ public class WheelScript : MonoBehaviour {
 		{	
 			// Reload the level
 			Application.LoadLevel("menu");
+		}
+
+		if (isFinished)
+		{
+			if (GUI.Button(new Rect(120,10,100,50), text))
+			{	
+				GameObject.Find("Game").GetComponent<GameScript>().hideBonusWheel();
+			}
 		}
 	}
 	
@@ -98,6 +120,8 @@ public class WheelScript : MonoBehaviour {
 				rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
 				rigidbody.AddTorque(new Vector3(0,0,z) * speed);
 				isSpinning = false;
+
+				GameObject.Find("Damper").GetComponent<DamperScript>().setStarted(); // notify the damper
 			}
 		}
 	}
