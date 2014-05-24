@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class WheelTestScript : MonoBehaviour {
+public class WheelScript : MonoBehaviour {
 
 	private bool isSwipe;
 	private bool isSpinning;

@@ -46,19 +46,19 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\DamperTestScript.cs" />
      <Compile Include="Assets\Scripts\AppleScript.cs" />
      <Compile Include="Assets\Scripts\BackgroundScript.cs" />
      <Compile Include="Assets\Scripts\BodyScript.cs" />
      <Compile Include="Assets\Scripts\BonusScript.cs" />
      <Compile Include="Assets\Scripts\CameraScript.cs" />
      <Compile Include="Assets\Scripts\CoinScript.cs" />
+     <Compile Include="Assets\Scripts\DamperScript.cs" />
      <Compile Include="Assets\Scripts\GameScript.cs" />
      <Compile Include="Assets\Scripts\MainMenuScript.cs" />
      <Compile Include="Assets\Scripts\ScoreTextScript.cs" />
      <Compile Include="Assets\Scripts\SnakeScript.cs" />
      <Compile Include="Assets\Scripts\TeleporterScript.cs" />
-     <Compile Include="Assets\WheelTestScript.cs" />
+     <Compile Include="Assets\Scripts\WheelScript.cs" />
      <Compile Include="Assets\iTween\Plugins\iTween.cs" />
      <Compile Include="Assets\iTween\Sample\MoveSample.cs" />
      <Compile Include="Assets\iTween\Sample\RotateSample.cs" />
