@@ -33,6 +33,7 @@ public class GameScript : MonoBehaviour {
 	private const string SCORE = "SCORE";
 	private const string SPEED = "SPEED";
 	private const string COINS = "COINS";
+	private const string LIVES = "LIVES";
 
 	// game logic
 	private int[,] grid; 
@@ -46,6 +47,7 @@ public class GameScript : MonoBehaviour {
 	private int currentScore;
 	private float currentSpeed;
 	private int currentCoins;
+	private int currentLives;
 	private int visibleScore;
 
 	// HUD variables
@@ -53,7 +55,9 @@ public class GameScript : MonoBehaviour {
 	private float hudX;
 	private float hudHeight;
 	private float hudY;
-
+	public Texture2D coin_sprite;
+	public Texture2D life_sprite;
+	
 	// pause/play variables
 	private bool paused;
 
@@ -61,9 +65,6 @@ public class GameScript : MonoBehaviour {
 	private GUISkin skin_normal;
 	private GUISkin skin_pause;
 	private GUISkin skin_play;
-
-	// coin variables
-	public Texture2D coin_sprite;
 
 	public void updateGrid(int row, int col, int value)
 	{
@@ -485,17 +486,14 @@ public class GameScript : MonoBehaviour {
 		snake.GetComponent<SnakeScript>().setHeadStartingPosition((int)space.x, (int)space.y, direction);
 		snake.GetComponent<SnakeScript>().setTailStartingPosition((int)tail_space.x, (int)tail_space.y);
 
-		// set the snake score saved from the game state
+		// set the values stored in the game state
 		snake.GetComponent<SnakeScript>().setScore(currentScore);
-
-		// set the snakes speed saved from the game state
 		snake.GetComponent<SnakeScript>().setSpeed(currentSpeed);
-
-		// set the number of coins saved from the game state
 		snake.GetComponent<SnakeScript>().setCoinsCollected(currentCoins);
+		snake.GetComponent<SnakeScript>().setLives(currentLives);
 
 		// randomly choose how many coins this level will have (0-3)
-		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(0,4-currentCoins));
+		snake.GetComponent<SnakeScript>().setNumberOfCoins(Random.Range(0,4));
 
 		// randomly choose how many pick ups this level will have (0-4)
 		snake.GetComponent<SnakeScript>().setNumberOfBonusPickUps(Random.Range(0,5));
@@ -570,6 +568,7 @@ public class GameScript : MonoBehaviour {
 		currentScore = PlayerPrefs.GetInt(SCORE);
 		currentSpeed = PlayerPrefs.GetFloat(SPEED);
 		currentCoins = PlayerPrefs.GetInt(COINS);
+		currentLives = PlayerPrefs.GetInt(LIVES);
 
 		visibleScore = currentScore;
 
@@ -586,6 +585,7 @@ public class GameScript : MonoBehaviour {
 			PlayerPrefs.SetInt(SCORE, snake.GetComponent<SnakeScript>().getScore());
 			PlayerPrefs.SetFloat(SPEED, snake.GetComponent<SnakeScript>().getSpeed());
 			PlayerPrefs.SetInt(COINS, snake.GetComponent<SnakeScript>().getCoinsCollected());
+			PlayerPrefs.SetInt(LIVES, snake.GetComponent<SnakeScript>().getLives());
 		}
 		else
 		{
@@ -600,6 +600,7 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.SetInt(SCORE, 0);
 		PlayerPrefs.SetFloat(SPEED, 0.5f);
 		PlayerPrefs.SetInt(COINS, 0);
+		PlayerPrefs.SetInt(LIVES, 0);
 	}
 
 	void resume()
@@ -628,17 +629,30 @@ public class GameScript : MonoBehaviour {
 		// add the coins if any are collected
 		if (snake != null)
 		{
-			int num = snake.GetComponent<SnakeScript>().getCoinsCollected();
-			if (num > 0)
+			float w = hudWidth/6;
+			float x = hudX+hudWidth;
+
+			// display the bonus item if there is one
+			if (snake.GetComponent<SnakeScript>().hasSnakeGotBonusItem())
 			{
-				float w = hudWidth/5;
-				float x = hudX+(2*hudWidth)-w;
-				for (int i=0; i<num; i++)
-				{
-					GUI.Box(new Rect(x,hudY,w,hudHeight), coin_sprite);
-					x -= w;
-				}
+				GUI.Box(new Rect(x,hudY,w,hudHeight), coin_sprite);
+				x += w;
+				GUI.Box(new Rect(x,hudY,w,hudHeight), snake.GetComponent<SnakeScript>().getBonusSeconds()+"");
 			}
+
+			// display the lives
+			x += w;
+			int num = snake.GetComponent<SnakeScript>().getLives();
+			GUI.Box(new Rect(x,hudY,w,hudHeight), life_sprite);
+			x += w;
+			GUI.Box(new Rect(x,hudY,w,hudHeight), "x"+num);
+			
+			// display the coins
+			x += w;
+			num = snake.GetComponent<SnakeScript>().getCoinsCollected();
+			GUI.Box(new Rect(x,hudY,w,hudHeight), coin_sprite);
+			x += w;
+			GUI.Box(new Rect(x,hudY,w,hudHeight), "x"+num);
 		}
 
 		// draw the score box in the centre right

@@ -48,7 +48,7 @@ public class WheelScript : MonoBehaviour {
 		}
 
 		if (isFinished)
-		{
+		{// display the sleected item here in  anice gui with button 
 			if (GUI.Button(new Rect(120,10,100,50), text))
 			{	
 				GameObject.Find("Game").GetComponent<GameScript>().hideBonusWheel();

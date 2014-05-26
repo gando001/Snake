@@ -19,4 +19,14 @@ public class CameraScript : MonoBehaviour {
 			size = 7.45f;
 		Camera.main.orthographicSize = size;
 	}
+
+	public void setUpsideDown()
+	{
+		animation.Play("Camera_upside_down");
+	}
+
+	public void setNormal()
+	{
+		animation.Play("Camera_normal");
+	}
 }

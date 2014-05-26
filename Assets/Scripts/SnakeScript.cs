@@ -41,6 +41,18 @@ public class SnakeScript : MonoBehaviour {
 	private int bonus_body_index;
 	private int bonus_collected;
 	private bool bonusWheelShowing;
+	private bool hasBonusItem;
+	private int bonusSeconds;
+	private float originalSpeed;
+	private bool bonusSlow;
+	private bool bonusSpeed;
+	private bool bonusDoublePoints;
+	private bool bonusRemoveApple;
+	private bool bonusRotate;
+	private const int TTL = 60;
+
+	// lives
+	private int lives;
 	
 	public void setHeadStartingPosition(int r, int c, int direction)
 	{
@@ -82,66 +94,176 @@ public class SnakeScript : MonoBehaviour {
 		gameScript = gs;
 	}
 
-	public bool isLevelPassed()
-	{
+	public bool isLevelPassed(){
 		return levelPassed;
 	}
 	
-	public bool isEaten()
-	{
+	public bool isEaten(){
 		return eaten;
 	}
 
-	public int getScore()
-	{
+	public int getScore(){
 		return score;
 	}
 
-	public void setScore(int s)
-	{
+	public void setScore(int s){
 		score = s;
 	}
 
-	public float getSpeed()
-	{
-		return speed;
+	public float getSpeed(){
+		if (bonusSlow || bonusSpeed)
+			return originalSpeed;
+		else
+			return speed;
 	}
 
-	public void setSpeed(float s)
-	{
+	public void setSpeed(float s){
 		speed = s;
 	}
 
-	public void setNumberOfCoins(int v)
-	{
+	// sets how many times to display a coin for this level
+	public void setNumberOfCoins(int v){
 		number_of_coins = v;
 	}
 
-	public void setCoinsCollected(int c)
-	{
+	// sets the number of coins the user has already collected
+	public void setCoinsCollected(int c){
 		coins_collected = c;
 	}
 
-	public int getCoinsCollected()
-	{
+	public void coinCollected(){
+		coins_collected++;
+	}
+
+	public int getCoinsCollected(){
 		return coins_collected;
 	}
 
-	public void setNumberOfBonusPickUps(int v)
-	{
+	public void setNumberOfBonusPickUps(int v){
 		number_of_pick_ups = v;
 	}
 
-	public void setBonusWheelShowing(bool v)
-	{
+	public void setBonusWheelShowing(bool v){
 		bonusWheelShowing = v;
 	}
 
-	public bool isBonusWheelShowing()
-	{
+	public bool isBonusWheelShowing(){
 		return bonusWheelShowing;
 	}
 
+	// sets the number of lives the user has
+	public void setLives(int v){
+		lives = v;
+	}
+
+	public void addLife(){
+		lives++;
+	}
+
+	public int getLives(){
+		return lives;
+	}
+
+	// halves the length of the snake
+	public void halfSnake()
+	{
+		if (body_parts > 0)
+		{
+			// set half of the snake bodies to inactive
+			// by changing their z position
+			int length = body_parts/2;
+			GameObject current;
+			for (int i=body_parts; i>length; i--)
+			{
+				current = GameObject.Find("body"+i);
+				Vector3 cur = current.transform.position;
+				current.transform.position = new Vector3(cur.x, cur.y, 15);
+
+				// set the tail to this body's position
+				updateGridFromTail();
+				tail.position = cur;
+				tail_direction = current.GetComponent<BodyScript>().getDirection();
+				tail.transform.rotation = Quaternion.Euler(gameScript.getRotation(tail_direction));
+			}
+
+			body_parts = length;
+		}
+	}
+
+	// slows the snake down
+	public void slowmoSnake()
+	{
+		originalSpeed = speed;
+		setSpeed(Mathf.Min(0.5f, originalSpeed+0.1f));
+
+		bonusSlow = true;
+		hasBonusItem = true;
+		bonusSeconds = TTL;
+	}
+
+	// speeds the snake up
+	public void speedSnake()
+	{
+		originalSpeed = speed;
+		setSpeed(Mathf.Max(0.0f, originalSpeed-0.05f));
+
+		bonusSpeed = true;
+		hasBonusItem = true;
+		bonusSeconds = TTL;
+	}
+
+	public void setDoublePoints(){
+		bonusDoublePoints = true;
+		hasBonusItem = true;
+		bonusSeconds = TTL;
+	}
+
+	// hides the apple for the remove apple bonus item
+	public void hideApple(){
+		gameScript.apple.SetActive(false);
+		bonusRemoveApple = true;
+		hasBonusItem = true;
+		bonusSeconds = TTL;
+	}
+
+	// rotates the world
+	public void setRotate(){
+		Camera.main.GetComponent<CameraScript>().setUpsideDown();
+		bonusRotate = true;
+		hasBonusItem = true;
+		bonusSeconds = TTL;
+	}
+
+	// removes any applied timed bonus items
+	public void removeAppliedBonusItems()
+	{
+		if (bonusSlow || bonusSpeed)
+			setSpeed(originalSpeed);
+		else if (bonusRemoveApple)
+		{
+			gameScript.moveApple();
+			gameScript.apple.SetActive(true);
+		}
+		else if (bonusRotate)
+			Camera.main.GetComponent<CameraScript>().setNormal();
+
+		hasBonusItem = false;
+		bonusSlow = false;
+		bonusSpeed = false;
+		bonusDoublePoints = false;
+		bonusRemoveApple = false;
+		bonusRotate = false;
+	}
+
+	public bool hasSnakeGotBonusItem(){
+		return hasBonusItem;
+	}
+
+	public int getBonusSeconds(){
+		return bonusSeconds;
+	}
+	
+	
 
 
 	// Use this for initialization
@@ -153,14 +275,24 @@ public class SnakeScript : MonoBehaviour {
 		lastUpdate = 0;
 		bodies = new ArrayList();
 		getUserInput = true;
-		bonusWheelShowing = false;
 
+		// bonus
+		bonusWheelShowing = false;
+		hasBonusItem = false;
+		bonusSlow = false;
+		bonusSpeed = false;
+		bonusDoublePoints = false;
+		bonusRemoveApple = false;
+		bonusRotate = false;
+
+		// set up the coins if required
 		if (gameScript.isCoinLevel() && number_of_coins > 0)
 		{
 			coins_collected = 0;
 			setCoinBodyIndex();
 		}
 
+		// set up the bonus wheel if required
 		if (gameScript.isPickUpLevel() && number_of_pick_ups > 0)
 		{
 			bonus_collected = 0;
@@ -330,6 +462,16 @@ public class SnakeScript : MonoBehaviour {
 				// snake tried to move to a non-empty cell
 				endGame();
 			}
+
+			// timed bonus items counter
+			if (hasBonusItem)
+			{
+				if (bonusSeconds == 0)
+					removeAppliedBonusItems();
+
+				if (bonusSeconds > 0)
+					bonusSeconds--;
+			}
 		}
 	}
 
@@ -350,7 +492,7 @@ public class SnakeScript : MonoBehaviour {
 		{
 			incrementScore(false, GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue());
 
-			coins_collected++;
+			coinCollected();
 
 			// remove the coin
 			gameScript.coin.SetActive(false);
@@ -400,12 +542,22 @@ public class SnakeScript : MonoBehaviour {
 	
 	void createBody()
 	{
-		// create a new body prefab
-		body = Instantiate(body) as Transform;
-		body.parent = parent;
+		string name = "body"+body_parts;
+		if (GameObject.Find(name) != null)
+		{
+			// this body has already been created but set to inactive due to half snake bonus item
+			body = GameObject.Find(name).transform;
+		}
+		else
+		{
+			// create a new body prefab
+			body = Instantiate(body) as Transform;
+			body.parent = parent;
+			body.name = name;
+			bodies.Add(body);
+		}
 		
 		// add the body to the end of the snake before the tail
-		body.name = "body"+body_parts;
 		if (body_parts > 1)
 		{
 			// add the body after the last body
@@ -432,7 +584,6 @@ public class SnakeScript : MonoBehaviour {
 			body.position = transform.position;
 			body.GetComponent<BodyScript>().setDirection(tail_direction);
 		}
-		bodies.Add(body);
 	}
 
 	void incrementSnake()
@@ -589,6 +740,8 @@ public class SnakeScript : MonoBehaviour {
 	void incrementScore(bool isApple, int v)
 	{
 		// increment the score
+		if (bonusDoublePoints)
+			v = v*2;
 		score += v;
 
 		// animate the HUD score
