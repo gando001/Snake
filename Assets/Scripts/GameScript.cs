@@ -16,6 +16,8 @@ public class GameScript : MonoBehaviour {
 	public GameObject teleporter_green;
 	public GameObject teleporter_blue;
 
+	public const bool REAL_DEVICE = false;
+
 	// level values
 	public const int EMPTY = 0;
 	public const int FRAME = 1;
@@ -183,7 +185,7 @@ public class GameScript : MonoBehaviour {
 
 	public bool isPickUpLevel()
 	{
-		if (level > 4)
+		if (level > 0) // 4
 			return true;
 		return false;
 	}
@@ -196,15 +198,19 @@ public class GameScript : MonoBehaviour {
 		// freeze any coin
 		coin.GetComponent<CoinScript>().setFreeze(true);
 
-		// create the wheel
-		bonus_wheel = Instantiate(bonus_wheel) as GameObject;
-		bonus_wheel.transform.parent = GameObject.Find("Foreground").transform;
-		bonus_wheel.name = "Bonus Wheel";
+		// remove the background as it slows the wheel rotation
+		GameObject.Find("Background").SetActive(false);
+
+		// display the wheel
 		bonus_wheel.SetActive(true);
 	}
 
 	public void hideBonusWheel() 
 	{
+		// display the background
+		GameObject.Find("Background").SetActive(true);
+		
+
 		bonus_wheel.SetActive(false);
 
 		Invoke("resume", 2);
@@ -549,6 +555,11 @@ public class GameScript : MonoBehaviour {
 		bonus.name = "Bonus";
 		bonus.SetActive(false);
 		this.displayBonusPickUp();
+
+		bonus_wheel = Instantiate(bonus_wheel) as GameObject;
+		bonus_wheel.transform.parent = GameObject.Find("Foreground").transform;
+		bonus_wheel.name = "Bonus Wheel";
+		bonus_wheel.SetActive(false);
 	}
 
 
@@ -572,7 +583,7 @@ public class GameScript : MonoBehaviour {
 
 		visibleScore = currentScore;
 
-		level = 16;
+		level = 1;
 	}
 	
 	// saves the game state 

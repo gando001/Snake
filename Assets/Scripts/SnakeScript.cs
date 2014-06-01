@@ -304,92 +304,84 @@ public class SnakeScript : MonoBehaviour {
 	void Update () 
 	{
 		// user input
-		/*if (Input.touchCount > 0 && !isBonusWheelShowing()) 
+		if (GameScript.REAL_DEVICE)
 		{
-			Touch touch = Input.GetTouch(0);
-
-			// user input is swiping the screen
-			if (touch.phase == TouchPhase.Moved && getUserInput)
+			if (Input.touchCount > 0 && !isBonusWheelShowing()) 
 			{
-				Vector2 deltaPostion = Input.GetTouch(0).deltaPosition;
+				Touch touch = Input.GetTouch(0);
 
+				// user input is swiping the screen
+				if (touch.phase == TouchPhase.Moved)
+				{
+					Vector2 deltaPostion = Input.GetTouch(0).deltaPosition;
+
+					// determine the direction the user wants to go
+					float dx = deltaPostion.x;
+					float dy = deltaPostion.y;
+					float delta = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+
+					if (delta == Mathf.Abs(dx))
+					{
+						// user chose a horizontal movement
+						if (!right && dx < 0)
+						{
+							// left
+							setLeft();
+						}
+						else if (!left && dx > 0)
+						{
+							// right
+							setRight();
+						}
+					}
+					else
+					{
+						// user chose a vertical movement
+						if (!down && dy > 0)
+						{
+							// up
+							setUp();
+						}
+						else if (!up && dy < 0)
+						{
+							// down	
+							setDown();
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if (!isBonusWheelShowing())
+			{
+				// Use for testing in Unity not on device
+				// get the keyboard values and calculate the movement
+				float inputX = Input.GetAxis ("Horizontal");
+				float inputY = Input.GetAxis ("Vertical");
+				
 				// determine the direction the user wants to go
-				float dx = deltaPostion.x;
-				float dy = deltaPostion.y;
-				float delta = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
-
-				if (delta == Mathf.Abs(dx))
+				// need to remove the going left then able to go right and top -> bottom
+				if (!right && inputX < 0)
 				{
-					// user chose a horizontal movement
-					if (!right && dx < 0)
-					{
-						// left
-						setLeft();
-					}
-					else if (!left && dx > 0)
-					{
-						// right
-						left = false;
-						right = true;	
-						down = false;
-						up = false;
-						direction = GameScript.RIGHT;
-					}
+					// left
+					setLeft();	
 				}
-				else
+				else if (!left && inputX > 0)
 				{
-					// user chose a vertical movement
-					if (!down && dy > 0)
-					{
-						// up
-						left = false;
-						right = false;	
-						down = false;
-						up = true;
-						direction = GameScript.UP;
-					}
-					else if (!up && dy < 0)
-					{
-						// down	
-						left = false;
-						right = false;	
-						down = true;
-						up = false;
-						direction = GameScript.DOWN;
-					}
+					// right
+					setRight();
 				}
-				getUserInput =false;
-			}
-		}*/
-
-		if (!isBonusWheelShowing())
-		{
-			// Use for testing in Unity not on device
-			// get the keyboard values and calculate the movement
-			float inputX = Input.GetAxis ("Horizontal");
-			float inputY = Input.GetAxis ("Vertical");
-			
-			// determine the direction the user wants to go
-			// need to remove the going left then able to go right and top -> bottom
-			if (!right && inputX < 0)
-			{
-				// left
-				setLeft();	
-			}
-			else if (!left && inputX > 0)
-			{
-				// right
-				setRight();
-			}
-			else if (!down && inputY > 0)
-			{
-				// up
-				setUp();
-			}
-			else if (!up && inputY < 0)
-			{
-				// down	
-				setDown();
+				else if (!down && inputY > 0)
+				{
+					// up
+					setUp();
+				}
+				else if (!up && inputY < 0)
+				{
+					// down	
+					setDown();
+				}
 			}
 		}
 	}

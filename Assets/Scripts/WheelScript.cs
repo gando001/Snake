@@ -59,36 +59,41 @@ public class WheelScript : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		if (!isSwipe && Time.timeScale != 0)
+		if (GameScript.REAL_DEVICE)
 		{
-			/*if (Input.touchCount > 0) 
+			if (!isSwipe && Time.timeScale != 0)
 			{
-				Touch touch = Input.GetTouch(0);
-				
-				// user is swiping the screen
-				if (touch.phase == TouchPhase.Began)
+				if (Input.touchCount > 0) 
 				{
-					// save the y point and time when the mouse was pressed
-					startY = Input.GetTouch(0).position.y;
-					startTime = Time.time;
-				}
-				else if (touch.phase == TouchPhase.Ended)
-				{
-					// get the distance moved and time
-					endY =  Input.GetTouch(0).position.y - startY;
-					endTime = Time.time - startTime;
+					Touch touch = Input.GetTouch(0);
 					
-					// speed is distance divided by time
-					speed = Mathf.Abs(endY/endTime);
-
-					if (speed > MIN_SPEED)
+					// user is swiping the screen
+					if (touch.phase == TouchPhase.Began)
 					{
-						isSwipe = true;
-						isSpinning = true;
+						// save the y point and time when the screen was touched
+						startY = Input.GetTouch(0).position.y;
+						startTime = Time.time;
+					}
+					else if (touch.phase == TouchPhase.Ended)
+					{
+						// get the distance moved and time
+						endY =  Input.GetTouch(0).position.y - startY;
+						endTime = Time.time - startTime;
+						
+						// speed is distance divided by time
+						speed = Mathf.Abs(endY/endTime);
+
+						if (speed > MIN_SPEED)
+						{
+							isSwipe = true;
+							isSpinning = true;
+						}
 					}
 				}
 			}
-				*/
+		}
+		else
+		{
 			if(Input.GetMouseButtonDown(0))
 			{
 				// save the y point and time when the mouse was pressed
@@ -111,6 +116,7 @@ public class WheelScript : MonoBehaviour {
 					isSpinning = true;
 				}
 			}
+		}
 
 			if (isSpinning)
 			{
@@ -123,6 +129,5 @@ public class WheelScript : MonoBehaviour {
 
 				GameObject.Find("Damper").GetComponent<DamperScript>().setStarted(); // notify the damper
 			}
-		}
 	}
 }
