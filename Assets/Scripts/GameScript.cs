@@ -16,7 +16,7 @@ public class GameScript : MonoBehaviour {
 	public GameObject teleporter_green;
 	public GameObject teleporter_blue;
 
-	public const bool REAL_DEVICE = false;
+	public const bool REAL_DEVICE = true;
 
 	// level values
 	public const int EMPTY = 0;
@@ -51,6 +51,7 @@ public class GameScript : MonoBehaviour {
 	private int currentCoins;
 	private int currentLives;
 	private int visibleScore;
+	private Transform bk_parent;
 
 	// HUD variables
 	private float hudWidth;
@@ -199,7 +200,7 @@ public class GameScript : MonoBehaviour {
 		coin.GetComponent<CoinScript>().setFreeze(true);
 
 		// remove the background as it slows the wheel rotation
-		GameObject.Find("Background").SetActive(false);
+		bk_parent.gameObject.SetActive(false);
 
 		// display the wheel
 		bonus_wheel.SetActive(true);
@@ -207,11 +208,10 @@ public class GameScript : MonoBehaviour {
 
 	public void hideBonusWheel() 
 	{
-		// display the background
-		GameObject.Find("Background").SetActive(true);
-		
-
 		bonus_wheel.SetActive(false);
+
+		// display the background
+		bk_parent.gameObject.SetActive(true);
 
 		Invoke("resume", 2);
 	}
@@ -321,7 +321,7 @@ public class GameScript : MonoBehaviour {
 		float z = (float)parent.position.z;
 
 		// the backround or empty objects will be a child of the background
-		Transform bk_parent = GameObject.Find("Background").transform;
+		bk_parent = GameObject.Find("Background").transform;
 
 		// read all of the lines into an array
 		TextAsset level_file = (TextAsset)Resources.Load("Levels/level_"+level);
@@ -582,8 +582,6 @@ public class GameScript : MonoBehaviour {
 		currentLives = PlayerPrefs.GetInt(LIVES);
 
 		visibleScore = currentScore;
-
-		level = 1;
 	}
 	
 	// saves the game state 

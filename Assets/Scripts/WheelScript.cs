@@ -125,6 +125,8 @@ public class WheelScript : MonoBehaviour {
 					z = -z;
 				rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
 				rigidbody.AddTorque(new Vector3(0,0,z) * speed);
+				GameObject.Find("Inner Wheel").rigidbody.AddTorque(new Vector3(0,0,-z) * speed);
+
 				isSpinning = false;
 
 				GameObject.Find("Damper").GetComponent<DamperScript>().setStarted(); // notify the damper
