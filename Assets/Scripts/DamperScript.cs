@@ -50,7 +50,7 @@ public class DamperScript : MonoBehaviour {
 	{
 		// reset the timer after each exit
 		// the chosen item will not have its time reset
-		time = 100;
+		time = 200;
 	}
 
 	void handleItem()

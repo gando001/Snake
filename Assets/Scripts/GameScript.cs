@@ -16,7 +16,7 @@ public class GameScript : MonoBehaviour {
 	public GameObject teleporter_green;
 	public GameObject teleporter_blue;
 
-	public const bool REAL_DEVICE = true;
+	public const bool REAL_DEVICE = false;
 
 	// level values
 	public const int EMPTY = 0;
@@ -186,7 +186,7 @@ public class GameScript : MonoBehaviour {
 
 	public bool isPickUpLevel()
 	{
-		if (level > 0) // 4
+		if (level > 4)
 			return true;
 		return false;
 	}
@@ -582,6 +582,8 @@ public class GameScript : MonoBehaviour {
 		currentLives = PlayerPrefs.GetInt(LIVES);
 
 		visibleScore = currentScore;
+
+		level = 16;
 	}
 	
 	// saves the game state 

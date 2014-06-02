@@ -49,7 +49,7 @@ public class SnakeScript : MonoBehaviour {
 	private bool bonusDoublePoints;
 	private bool bonusRemoveApple;
 	private bool bonusRotate;
-	private const int TTL = 60;
+	private const int TTL = 90;
 
 	// lives
 	private int lives;
