@@ -58,8 +58,11 @@ public class GameScript : MonoBehaviour {
 	private float hudX;
 	private float hudHeight;
 	private float hudY;
-	public Texture2D coin_sprite;
+	private float spriteY;
+	private float spriteH;
+	public Texture2D empty_sprite;
 	public Texture2D life_sprite;
+	public Texture2D coin_sprite;
 	
 	// pause/play variables
 	private bool paused;
@@ -68,6 +71,7 @@ public class GameScript : MonoBehaviour {
 	private GUISkin skin_normal;
 	private GUISkin skin_pause;
 	private GUISkin skin_play;
+	private GUISkin HUD_blank;
 
 	public void updateGrid(int row, int col, int value)
 	{
@@ -237,13 +241,16 @@ public class GameScript : MonoBehaviour {
 		skin_normal = (GUISkin)Resources.Load("Skins/skin_normal");
 		skin_pause = (GUISkin)Resources.Load("Skins/skin_pause");
 		skin_play = (GUISkin)Resources.Load("Skins/skin_play");
+		HUD_blank = (GUISkin)Resources.Load("Skins/HUD_blank");
 		
 		// HUD values
-		hudWidth = Screen.width/4;
-		hudX = hudWidth/2;
+		hudWidth = 100;
+		hudX = Screen.width/2-3.5f*hudWidth;
 		hudY = GameObject.Find("Middleground").transform.position.y+rows;
 		hudHeight = Screen.height/rows;
-
+		spriteY = hudY-5;
+		spriteH = hudHeight*1.5f;
+		
 		// create the level
 		createLevel();
 
@@ -609,7 +616,7 @@ public class GameScript : MonoBehaviour {
 	{
 		PlayerPrefs.SetInt(LEVEL, 1);
 		PlayerPrefs.SetInt(SCORE, 0);
-		PlayerPrefs.SetFloat(SPEED, 0.5f);
+		PlayerPrefs.SetFloat(SPEED, 0.28f);
 		PlayerPrefs.SetInt(COINS, 0);
 		PlayerPrefs.SetInt(LIVES, 0);
 	}
@@ -629,45 +636,46 @@ public class GameScript : MonoBehaviour {
 	// draws the HUD
 	void drawHUD()
 	{
+		float x = hudX+hudWidth/2;
+		float padding = 10;
+
+		// level + score
 		GUI.skin = skin_normal;
-
-		// draw the level box in the centre left
-		GUI.Box(new Rect(hudX,hudY,hudWidth,hudHeight), "Level "+level);
-
-		// draw the bonus pick up box in the centre
-		GUI.Box(new Rect(hudX+hudWidth,hudY,hudWidth,hudHeight), "");
-
+		GUI.Box(new Rect(x,hudY+padding,hudWidth*1.5f,hudHeight), visibleScore+"");
+		GUI.skin = HUD_blank;
+		GUI.Box(new Rect(hudX,spriteY,hudWidth,spriteH), empty_sprite);
+		GUI.Box(new Rect(hudX,spriteY,hudWidth,spriteH), level+"");
+		
 		// add the coins if any are collected
 		if (snake != null)
 		{
-			float w = hudWidth/6;
-			float x = hudX+hudWidth;
+			// lives
+			x += 2*hudWidth;
+			int num = snake.GetComponent<SnakeScript>().getLives();
+			GUI.skin = skin_normal;
+			GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), num+"");
+			GUI.skin = HUD_blank;
+			GUI.Box(new Rect(x-hudWidth/2,spriteY,hudWidth,spriteH), life_sprite);
+
+			// coins
+			x += 1.5f*hudWidth;
+			num = snake.GetComponent<SnakeScript>().getCoinsCollected();
+			GUI.skin = skin_normal;
+			GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), num+"");
+			GUI.skin = HUD_blank;
+			GUI.Box(new Rect(x-hudWidth/2,spriteY,hudWidth,spriteH), coin_sprite);
 
 			// display the bonus item if there is one
 			if (snake.GetComponent<SnakeScript>().hasSnakeGotBonusItem())
 			{
-				GUI.Box(new Rect(x,hudY,w,hudHeight), coin_sprite);
-				x += w;
-				GUI.Box(new Rect(x,hudY,w,hudHeight), snake.GetComponent<SnakeScript>().getBonusSeconds()+"");
+				x += 1.5f*hudWidth;
+				num = snake.GetComponent<SnakeScript>().getCoinsCollected();
+				GUI.skin = skin_normal;
+				GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), snake.GetComponent<SnakeScript>().getBonusSeconds()+"");
+				GUI.skin = HUD_blank;
+				GUI.Box(new Rect(x-hudWidth/2,spriteY,hudWidth,spriteH), empty_sprite);
 			}
-
-			// display the lives
-			x += w;
-			int num = snake.GetComponent<SnakeScript>().getLives();
-			GUI.Box(new Rect(x,hudY,w,hudHeight), life_sprite);
-			x += w;
-			GUI.Box(new Rect(x,hudY,w,hudHeight), "x"+num);
-			
-			// display the coins
-			x += w;
-			num = snake.GetComponent<SnakeScript>().getCoinsCollected();
-			GUI.Box(new Rect(x,hudY,w,hudHeight), coin_sprite);
-			x += w;
-			GUI.Box(new Rect(x,hudY,w,hudHeight), "x"+num);
 		}
-
-		// draw the score box in the centre right
-		GUI.Box(new Rect(hudX+(2*hudWidth),hudY,hudWidth,hudHeight), "Score "+visibleScore);
 	}
 
 	// draws the pause/play menu
@@ -676,8 +684,7 @@ public class GameScript : MonoBehaviour {
 		if (!isGameOver())
 		{
 			// draw a button at the top right corner
-			float w = hudWidth/3;
-			float x = Screen.width-w;
+			float x = Screen.width-hudHeight*3;
 			Rect rect = new Rect(x,hudY,hudHeight,hudHeight);
 			if (!paused)
 			{
@@ -704,9 +711,9 @@ public class GameScript : MonoBehaviour {
 	// draws the menu once the level has finished
 	void drawMenu()
 	{
+		GUI.skin = skin_normal;
 		if (isGameOver())
 		{
-			GUI.skin = skin_normal;
 			if (userWin)
 			{
 				// display the scoreboard
@@ -720,8 +727,9 @@ public class GameScript : MonoBehaviour {
 					// increment the level
 					level++;
 
-					// increase the speed every level
-					currentSpeed -= 0.01f;
+					// increase the speed every second level
+					if (level % 2 == 0)
+						currentSpeed -= 0.01f;
 
 					// save the game state
 					saveGame();
