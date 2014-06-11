@@ -194,11 +194,13 @@ public class SnakeScript : MonoBehaviour {
 	public void slowmoSnake()
 	{
 		originalSpeed = speed;
-		setSpeed(Mathf.Min(0.5f, originalSpeed+0.1f));
+		setSpeed(Mathf.Min(0.28f, originalSpeed+0.05f));
 
 		bonusSlow = true;
 		hasBonusItem = true;
 		bonusSeconds = TTL;
+
+		InvokeRepeating ("BonusCountdown", 1.0f, 1.0f);
 	}
 
 	// speeds the snake up
@@ -210,12 +212,16 @@ public class SnakeScript : MonoBehaviour {
 		bonusSpeed = true;
 		hasBonusItem = true;
 		bonusSeconds = TTL;
+
+		InvokeRepeating ("BonusCountdown", 1.0f, 1.0f);
 	}
 
 	public void setDoublePoints(){
 		bonusDoublePoints = true;
 		hasBonusItem = true;
 		bonusSeconds = TTL;
+
+		InvokeRepeating ("BonusCountdown", 1.0f, 1.0f);
 	}
 
 	// hides the apple for the remove apple bonus item
@@ -224,6 +230,8 @@ public class SnakeScript : MonoBehaviour {
 		bonusRemoveApple = true;
 		hasBonusItem = true;
 		bonusSeconds = TTL;
+
+		InvokeRepeating ("BonusCountdown", 1.0f, 1.0f);
 	}
 
 	// rotates the world
@@ -232,6 +240,8 @@ public class SnakeScript : MonoBehaviour {
 		bonusRotate = true;
 		hasBonusItem = true;
 		bonusSeconds = TTL;
+
+		InvokeRepeating ("BonusCountdown", 1.0f, 1.0f);
 	}
 
 	// removes any applied timed bonus items
@@ -453,16 +463,6 @@ public class SnakeScript : MonoBehaviour {
 			{
 				// snake tried to move to a non-empty cell
 				endGame();
-			}
-
-			// timed bonus items counter
-			if (hasBonusItem)
-			{
-				if (bonusSeconds == 0)
-					removeAppliedBonusItems();
-
-				if (bonusSeconds > 0)
-					bonusSeconds--;
 			}
 		}
 	}
@@ -687,7 +687,7 @@ public class SnakeScript : MonoBehaviour {
 		Handheld.Vibrate ();
 		
 		// flash the snake
-		InvokeRepeating("flashSnake", 0, 0.25f);
+		//InvokeRepeating("flashSnake", 0, 0.25f);
 	}
 
 	// randomly choose when to display the coins based on the snake body length
@@ -804,5 +804,14 @@ public class SnakeScript : MonoBehaviour {
 		down = true;
 		up = false;
 		direction = GameScript.DOWN;
+	}
+
+	void BonusCountdown () 
+	{
+		if (--bonusSeconds == 0)
+		{
+			removeAppliedBonusItems();
+			CancelInvoke ("Countdown");
+		}
 	}
 }

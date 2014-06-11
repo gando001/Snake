@@ -3,10 +3,22 @@ using System.Collections;
 
 public class WheelScript : MonoBehaviour {
 
+	// bonus sprites
+	public Texture2D spin_again, spin_empty, spin_slow, spin_apple, spin_double_points, spin_half_snake, spin_coin, spin_speed, spin_life, spin_opposite;
+
 	private bool isSwipe;
 	private bool isSpinning;
 	private bool isFinished;
+	private bool isFreeSpin;
 	private string text;
+	private GameScript game;
+	private bool isTryingToGetLife;
+	private SpriteRenderer item;
+	private Texture2D sprite;
+	private string description;
+	private float x, y, w, h;
+	private GUISkin skin;
+	private GameObject snake;
 
 	// speed
 	private float speed;
@@ -25,34 +37,211 @@ public class WheelScript : MonoBehaviour {
 		isSwipe = false;
 		isSpinning = false;
 		isFinished = false;
+		isTryingToGetLife = false;
+		isFreeSpin = false;
+		GameObject.Find("Damper").GetComponent<DamperScript>().reset();
 	}
 
 	public void displayResult(string txt)
 	{
 		text = txt;
 		isFinished = true;
+
+		// determine the item
+		if (text == "Spin_again")
+		{
+			sprite = spin_again;
+			description = "You have won a free spin";
+		}
+		else if (text == "Spin_empty")
+		{
+			sprite = spin_empty;
+			description = "You have won nothing";
+		}
+		else if (text == "Spin_slow")
+		{
+			sprite = spin_slow;
+			description = "Reduce speed";
+			game.setBonusSprite(spin_slow);
+		}
+		else if (text == "Spin_apple")
+		{
+			sprite = spin_apple;
+			description = "Remove apples";
+			game.setBonusSprite(spin_apple);
+		}
+		else if (text == "Spin_double_points")
+		{
+			sprite = spin_double_points;
+			description = "Double points";
+			game.setBonusSprite(spin_double_points);
+		}
+		else if (text == "Spin_half_snake")
+		{
+			sprite = spin_half_snake;
+			description = "Cut snake in half";
+		}
+		else if (text == "Spin_coin")
+		{
+			sprite = spin_coin;
+			description = "+1 coin";
+		}
+		else if (text == "Spin_speed")
+		{
+			sprite = spin_speed;
+			description = "Increase speed";
+			game.setBonusSprite(spin_speed);
+		}
+		else if (text == "Spin_life")
+		{
+			sprite = spin_life;
+			description = "+1 Life";
+		}
+		else if (text == "Spin_opposite")
+		{
+			sprite = spin_opposite;
+			description = "Upside down, good luck!";
+			game.setBonusSprite(spin_opposite);
+		}
+
+		// create a sprite
+		item.sprite = Sprite.Create(sprite, new Rect(0,0,sprite.width,sprite.height), new Vector2(0.5f,0.5f));
+	}
+
+	public void setLevelSpin()
+	{
+		isTryingToGetLife = true;
 	}
 
 	// Use this for initialization
 	void Start () 
 	{
 		resetWheel();
+		game = GameObject.Find("Game").GetComponent<GameScript>();
+		item = GameObject.Find("Item").GetComponent<SpriteRenderer>();
+		snake = GameObject.Find("Snake");
+
+		// set up box coordinates
+		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("head_wheel").transform.position);
+		x = pos.x-145;
+		y = pos.y-140;
+		w = 135;
+
+		skin = (GUISkin)Resources.Load("Skins/Wheel_Skin");
+		description = "Spin the wheel!";
 	}
 
 	void OnGUI ()
 	{
-		if (GUI.Button(new Rect(10,10,100,50), "Main Menu"))
-		{	
-			// Reload the level
-			Application.LoadLevel("menu");
-		}
-
+		GUI.skin = skin;
+		print (isTryingToGetLife);
 		if (isFinished)
-		{// display the sleected item here in  anice gui with button 
-			if (GUI.Button(new Rect(120,10,100,50), text))
-			{	
-				GameObject.Find("Game").GetComponent<GameScript>().hideBonusWheel();
+		{
+			// display the item text
+			GUI.Box (new Rect(x,y+75,w,128), description);
+
+			if (!isTryingToGetLife)
+			{
+				// normal game play mode 
+
+				isFreeSpin = false;
+
+				// apply the item
+				if (text == "Spin_again")
+				{
+					// reset the damper and wheel
+					resetWheel();
+					isFreeSpin = true;
+				}
+				else 
+				{
+					// normal wheel so have a button to continue
+					if (GUI.Button(new Rect(x,y+85+128,w,50), "Continue"))
+					{	
+						if (text == "Spin_slow")
+							snake.GetComponent<SnakeScript>().slowmoSnake();
+						else if (text == "Spin_apple")
+							snake.GetComponent<SnakeScript>().hideApple();
+						else if (text == "Spin_double_points")
+							snake.GetComponent<SnakeScript>().setDoublePoints();
+						else if (text == "Spin_half_snake")
+							snake.GetComponent<SnakeScript>().halfSnake();
+						else if (text == "Spin_coin")
+							snake.GetComponent<SnakeScript>().coinCollected();
+						else if (text == "Spin_speed")
+							snake.GetComponent<SnakeScript>().speedSnake();
+						else if (text == "Spin_life")
+							snake.GetComponent<SnakeScript>().addLife();
+						else if (text == "Spin_opposite")
+							snake.GetComponent<SnakeScript>().setRotate();
+
+						// hide the wheel
+						game.hideBonusWheel();
+					}
+				}
 			}
+			else
+			{
+				// user is using coins to get a life
+
+				// reduce the coins count
+				int num = snake.GetComponent<SnakeScript>().getCoinsCollected()-1;
+				snake.GetComponent<SnakeScript>().setCoinsCollected(num);
+				print ("coins:" +num);
+
+				if (text == "Spin_coin")
+				{ 
+					// increase the coin count
+					snake.GetComponent<SnakeScript>().coinCollected();
+				}
+				else if (text == "Spin_life")
+				{
+					// user won a life so display the menu to retry
+					snake.GetComponent<SnakeScript>().addLife();
+
+					// hide the wheel
+					game.hideBonusWheel();
+				}
+				else
+				{
+					// user has more coins to try again
+					if (snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
+					{
+						//resetWheel();
+					}
+					else
+					{
+						// user has lost so display the menu
+						game.hideBonusWheel();
+					}
+				}
+				isFinished = false;
+			}
+		}
+		else if (isFreeSpin)
+		{
+			// keep displaying the spin again bonus item
+			GUI.Box (new Rect(x,y+75,w,128), description);
+		}
+		else
+		{
+			// create the content
+			if (isTryingToGetLife)
+				description =  "Use your coins to spin the wheel for a second chance!";
+
+			GUIContent c = new GUIContent(description);
+
+			item.sprite = null;
+		
+			GUIStyle style = new GUIStyle();
+			style.wordWrap = true;
+			style.fontSize = 18;
+
+			// calculate the height
+			h = style.CalcHeight(c,w);
+
+			// display the label
+			GUI.Box (new Rect(x,y,w,h), c);
 		}
 	}
 	
@@ -94,42 +283,45 @@ public class WheelScript : MonoBehaviour {
 		}
 		else
 		{
-			if(Input.GetMouseButtonDown(0))
-			{
-				// save the y point and time when the mouse was pressed
-				startY = Input.mousePosition.y;
-				startTime = Time.time;
-			}
-			else if(Input.GetMouseButtonUp(0))
-			{
-				// get the distance moved and time
-				endY =  Input.mousePosition.y - startY;
-				endTime = Time.time - startTime;
-
-				// speed is distance divided by time
-				speed = Mathf.Abs(endY/endTime);
-
-				print (speed);
-				if (speed > MIN_SPEED)
+		//	if (!isSwipe && Time.timeScale != 0)
+		//	{
+				if(Input.GetMouseButtonDown(0))
 				{
-					isSwipe = true;
-					isSpinning = true;
+					// save the y point and time when the mouse was pressed
+					startY = Input.mousePosition.y;
+					startTime = Time.time;
 				}
+				else if(Input.GetMouseButtonUp(0))
+				{
+					// get the distance moved and time
+					endY =  Input.mousePosition.y - startY;
+					endTime = Time.time - startTime;
+
+					// speed is distance divided by time
+					speed = Mathf.Abs(endY/endTime);
+
+					print (speed);
+					if (speed > MIN_SPEED)
+					{
+						isSwipe = true;
+						isSpinning = true;
+					}
+			//	}
 			}
 		}
 
-			if (isSpinning)
-			{
-				float z = 10;
-				if (endY < startY)
-					z = -z;
-				rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
-				rigidbody.AddTorque(new Vector3(0,0,z) * speed);
-				GameObject.Find("Inner Wheel").rigidbody.AddTorque(new Vector3(0,0,-z) * speed);
+		if (isSpinning)
+		{
+			float z = 10;
+			if (endY < startY)
+				z = -z;
+			rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
+			rigidbody.AddTorque(new Vector3(0,0,z) * speed);
+			GameObject.Find("Inner Wheel").rigidbody.AddTorque(new Vector3(0,0,-z) * speed);
 
-				isSpinning = false;
+			isSpinning = false;
 
-				GameObject.Find("Damper").GetComponent<DamperScript>().setStarted(); // notify the damper
-			}
+			GameObject.Find("Damper").GetComponent<DamperScript>().setStarted(); // notify the damper
+		}
 	}
 }

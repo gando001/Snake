@@ -58,11 +58,11 @@ public class GameScript : MonoBehaviour {
 	private float hudX;
 	private float hudHeight;
 	private float hudY;
-	private float spriteY;
 	private float spriteH;
 	public Texture2D empty_sprite;
 	public Texture2D life_sprite;
 	public Texture2D coin_sprite;
+	private Texture2D bonus_sprite;
 	
 	// pause/play variables
 	private bool paused;
@@ -183,14 +183,14 @@ public class GameScript : MonoBehaviour {
 
 	public bool isCoinLevel()
 	{
-		if (level > 2)
+		if (level > 0) //2
 			return true;
 		return false;
 	}
 
 	public bool isPickUpLevel()
 	{
-		if (level > 4)
+		if (level > 0) //4
 			return true;
 		return false;
 	}
@@ -220,6 +220,10 @@ public class GameScript : MonoBehaviour {
 		Invoke("resume", 2);
 	}
 
+	public void setBonusSprite(Texture2D s){
+		bonus_sprite = s;
+	}
+
 
 
 
@@ -244,11 +248,10 @@ public class GameScript : MonoBehaviour {
 		HUD_blank = (GUISkin)Resources.Load("Skins/HUD_blank");
 		
 		// HUD values
-		hudWidth = 100;
-		hudX = Screen.width/2-3.5f*hudWidth;
+		hudX = GameObject.Find("Middleground").transform.position.x;
 		hudY = GameObject.Find("Middleground").transform.position.y+rows;
+		hudWidth = Screen.width/10;
 		hudHeight = Screen.height/rows;
-		spriteY = hudY-5;
 		spriteH = hudHeight*1.5f;
 		
 		// create the level
@@ -590,7 +593,7 @@ public class GameScript : MonoBehaviour {
 
 		visibleScore = currentScore;
 
-		level = 16;
+		//level = 16;
 	}
 	
 	// saves the game state 
@@ -637,43 +640,43 @@ public class GameScript : MonoBehaviour {
 	void drawHUD()
 	{
 		float x = hudX+hudWidth/2;
-		float padding = 10;
+		float padding = hudHeight/4;
 
 		// level + score
 		GUI.skin = skin_normal;
-		GUI.Box(new Rect(x,hudY+padding,hudWidth*1.5f,hudHeight), visibleScore+"");
+		GUI.Box(new Rect(x,hudY+padding,hudWidth*2f,hudHeight), visibleScore+"");
 		GUI.skin = HUD_blank;
-		GUI.Box(new Rect(hudX,spriteY,hudWidth,spriteH), empty_sprite);
-		GUI.Box(new Rect(hudX,spriteY,hudWidth,spriteH), level+"");
-		
+		GUI.Box(new Rect(hudX+10,hudY-padding/2,hudWidth,spriteH), empty_sprite);
+		GUI.Box(new Rect(hudX+10,hudY-padding/2,hudWidth,spriteH), level+"");
+	
 		// add the coins if any are collected
 		if (snake != null)
 		{
 			// lives
-			x += 2*hudWidth;
+			x += 2.5f*hudWidth;
 			int num = snake.GetComponent<SnakeScript>().getLives();
 			GUI.skin = skin_normal;
 			GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), num+"");
 			GUI.skin = HUD_blank;
-			GUI.Box(new Rect(x-hudWidth/2,spriteY,hudWidth,spriteH), life_sprite);
+			GUI.Box(new Rect(x-hudWidth/2,hudY-padding/2,hudWidth,spriteH), life_sprite);
 
 			// coins
 			x += 1.5f*hudWidth;
 			num = snake.GetComponent<SnakeScript>().getCoinsCollected();
+			print ("gui: "+num);
 			GUI.skin = skin_normal;
 			GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), num+"");
 			GUI.skin = HUD_blank;
-			GUI.Box(new Rect(x-hudWidth/2,spriteY,hudWidth,spriteH), coin_sprite);
+			GUI.Box(new Rect(x-hudWidth/2,hudY-padding/2,hudWidth,spriteH), coin_sprite);
 
 			// display the bonus item if there is one
 			if (snake.GetComponent<SnakeScript>().hasSnakeGotBonusItem())
 			{
 				x += 1.5f*hudWidth;
-				num = snake.GetComponent<SnakeScript>().getCoinsCollected();
 				GUI.skin = skin_normal;
 				GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), snake.GetComponent<SnakeScript>().getBonusSeconds()+"");
 				GUI.skin = HUD_blank;
-				GUI.Box(new Rect(x-hudWidth/2,spriteY,hudWidth,spriteH), empty_sprite);
+				GUI.Box(new Rect(x-hudWidth/2,hudY-padding/2,hudWidth,spriteH), bonus_sprite);
 			}
 		}
 	}
@@ -740,28 +743,55 @@ public class GameScript : MonoBehaviour {
 			}
 			else
 			{
-				// give the user options to retry or go to the main menu
+				// give the user options depending on game state
 				float x = Screen.width/2;
 				float y = Screen.height/2;
 				float w = hudWidth/2;
 				float h = hudHeight;
-			
-				if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
-				{
-					// save the game state
-					saveGame();
 
-					// Reload the level
-					Application.LoadLevel("level");
+				if (snake.GetComponent<SnakeScript>().getLives() > 0)
+				{
+					// user has lives to retry
+					if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
+					{
+						// save the game state
+						saveGame();
+
+						// Reload the level
+						Application.LoadLevel("level");
+					}
+					
+					if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
+					{
+						// save the game state
+						saveGame();
+
+						// Reload the level
+						Application.LoadLevel("menu");
+					}
 				}
-				
-				if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
+				else if (snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
 				{
-					// save the game state
-					saveGame();
-
-					// Reload the level
-					Application.LoadLevel("menu");
+					if (!bonus_wheel.activeSelf)
+					{
+						// user has coins to spin the wheel
+						displayBonusWheel();
+	
+						// notify the wheel that this is for a level retry
+						GameObject.Find("Wheel").GetComponent<WheelScript>().setLevelSpin();
+					}
+				}
+				else
+				{
+					// user loses the game
+					if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
+					{
+						// save the game state
+						saveGame();
+						
+						// Reload the level
+						Application.LoadLevel("menu");
+					}
 				}
 			}
 		}
