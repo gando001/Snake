@@ -20,6 +20,7 @@ public class DamperScript : MonoBehaviour {
 		time = -1;
 	}
 
+
 	// Use this for initialization
 	void Start () 
 	{
