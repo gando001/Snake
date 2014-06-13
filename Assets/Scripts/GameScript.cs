@@ -50,7 +50,6 @@ public class GameScript : MonoBehaviour {
 	private float currentSpeed;
 	private int currentCoins;
 	private int currentLives;
-	private int visibleScore;
 	private Transform bk_parent;
 
 	// HUD variables
@@ -59,6 +58,7 @@ public class GameScript : MonoBehaviour {
 	private float hudHeight;
 	private float hudY;
 	private float spriteH;
+	private int visibleScore;
 	public Texture2D empty_sprite;
 	public Texture2D life_sprite;
 	public Texture2D coin_sprite;
@@ -67,11 +67,18 @@ public class GameScript : MonoBehaviour {
 	// pause/play variables
 	private bool paused;
 
+	// score board variables
+	private bool startScoreBoardAnimation;
+	private int scoreBoardScore;
+	private int scoreBoardLives;
+	private int scoreBoardCoins;
+
 	// GUI skins
 	private GUISkin skin_normal;
 	private GUISkin skin_pause;
 	private GUISkin skin_play;
 	private GUISkin HUD_blank;
+	private GUISkin menu_skin;
 
 	public void updateGrid(int row, int col, int value)
 	{
@@ -118,6 +125,9 @@ public class GameScript : MonoBehaviour {
 	public void setGameOver(bool v)
 	{
 		gameOver = v;
+
+		if (gameOver)
+			startScoreBoardAnimation = true;
 	}
 
 	public bool isGameOver()
@@ -234,6 +244,7 @@ public class GameScript : MonoBehaviour {
 		skin_pause = (GUISkin)Resources.Load("Skins/skin_pause");
 		skin_play = (GUISkin)Resources.Load("Skins/skin_play");
 		HUD_blank = (GUISkin)Resources.Load("Skins/HUD_blank");
+		menu_skin = (GUISkin)Resources.Load("Skins/Menu_skin");
 	}
 
 	// Use this for initialization
@@ -624,6 +635,7 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.SetInt(LIVES, 0);
 	}
 
+	// resumes the game from the bonus wheel
 	void resume()
 	{	
 		// unfreeze the snake
@@ -684,29 +696,30 @@ public class GameScript : MonoBehaviour {
 	// draws the pause/play menu
 	void drawPause()
 	{
-		if (!isGameOver())
+		// draw a button at the top right corner
+		float x = Screen.width-hudHeight*3;
+		Rect rect = new Rect(x,hudY,hudHeight,hudHeight);
+		if (!paused)
 		{
-			// draw a button at the top right corner
-			float x = Screen.width-hudHeight*3;
-			Rect rect = new Rect(x,hudY,hudHeight,hudHeight);
-			if (!paused)
+			// game is in play mode so display pause sprite
+			GUI.skin = skin_pause;
+			if (GUI.Button(rect,""))
 			{
-				// game is in play mode so display pause sprite
-				GUI.skin = skin_pause;
-				if (GUI.Button(rect,""))
-				{
-					paused = true;
-					Time.timeScale = 0f;
-				}
+				paused = true;
+				Time.timeScale = 0f;
 			}
-			else
+		}
+		else
+		{
+			// draw the score board
+			drawScoreBoard();
+
+			// game is paused
+			GUI.skin = skin_play;
+			if (GUI.Button(rect,""))
 			{
-				GUI.skin = skin_play;
-				if (GUI.Button(rect,""))
-				{
-					paused = false;
-					Time.timeScale = 1.0f;
-				}
+				paused = false;
+				Time.timeScale = 1.0f;
 			}
 		}
 	}
@@ -720,96 +733,154 @@ public class GameScript : MonoBehaviour {
 			GUI.skin = skin_normal;
 			if (isGameOver())
 			{
-				if (userWin)
+				// remove any bonus items
+				snake.GetComponent<SnakeScript>().removeAppliedBonusItems();
+
+				if (!userWin && snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
 				{
-					// display the scoreboard
-					float x = Screen.width/2;
-					float y = Screen.height/2;
-					float w = hudWidth/2;
-					float h = hudHeight;
+					// user has lost the level but has coins for the bonus wheel
+					displayBonusWheel();
 					
-					if (GUI.Button(new Rect(x,y,w,h), "Next"))
-					{
-						// increment the level
-						level++;
-
-						// increase the speed every second level
-						if (level % 2 == 0)
-							currentSpeed -= 0.01f;
-
-						// save the game state
-						saveGame();
-
-						// Load the level
-						Application.LoadLevel("level");
-					}
+					// notify the wheel that this is for a level retry - need this hack to delay the call
+					StartCoroutine(resetWheel());
 				}
 				else
 				{
-					// give the user options depending on game state
-					float x = Screen.width/2;
-					float y = Screen.height/2;
-					float w = hudWidth/2;
-					float h = hudHeight;
-
-					// remove any bonus items
-					snake.GetComponent<SnakeScript>().removeAppliedBonusItems();
-
-					if (snake.GetComponent<SnakeScript>().getLives() > 0)
-					{
-						// user has lives to retry
-						if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
-						{
-							// set up the game state for saving
-							userWin = true; 
-							int lives = snake.GetComponent<SnakeScript>().getLives()-1;
-							snake.GetComponent<SnakeScript>().setLives(lives);
-
-							// save the game state
-							saveGame();
-
-							// Reload the level
-							Application.LoadLevel("level");
-						}
-						
-						if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
-						{
-							// save the game state
-							saveGame();
-
-							// Reload the level
-							Application.LoadLevel("menu");
-						}
-					}
-					else if (snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
-					{
-						// user has coins to spin the wheel
-						displayBonusWheel();
-
-						// notify the wheel that this is for a level retry - need this hack to delay the call
-						StartCoroutine(resetWheel());
-					}
-					else
-					{
-						// user loses the game
-						if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
-						{
-							// save the game state
-							saveGame();
-							
-							// Reload the level
-							Application.LoadLevel("menu");
-						}
-					}
+					// user has either won the level, lost but has lives or lost the game
+					// so draw the score board
+					drawScoreBoard();
 				}
 			}
 		}
+	}
+
+	// draws a score board of the current level state
+	void drawScoreBoard()
+	{
+		GUI.skin = menu_skin;
+
+		if (startScoreBoardAnimation && !paused)
+		{
+			// only animate once and if not paused
+			animateScoreBoard();
+			startScoreBoardAnimation = false;
+		}
+
+		// draw the background box at the center of the screen
+		float width = hudWidth*3;
+		float height = hudHeight*6;
+		float x = (Screen.width-width)/2;
+		float y = (Screen.height-height)/2;
+		GUI.Box(new Rect(x,y,width,height),"");
+
+		// draw the components
+
+		// level
+		y += 10;
+		GUI.Label(new Rect(x,y,width,hudHeight), "Level "+level+"123456789");
+
+		// score
+		y += hudHeight;
+		GUI.Label(new Rect(x,y,width,hudHeight), "Score "+scoreBoardScore);
+
+		// lives
+		y += hudHeight;
+		GUI.Label(new Rect(x,y,width,spriteH), new GUIContent(" "+scoreBoardLives, life_sprite));
+
+		// coins
+		y += spriteH;
+		GUI.Label(new Rect(x,y,width,spriteH), new GUIContent(" "+scoreBoardCoins, coin_sprite));
+
+		// display the buttons
+		x += width/2; 
+		y += spriteH;
+		float w = 100;
+		float h = 100;
+		if (paused)
+		{
+			// draw the play or continue button
+
+		}
+		else
+		{
+			// game must be over here
+			if (userWin)
+			{
+				// user wins the level
+				if (GUI.Button(new Rect(x,y,w,h), "Next"))
+				{
+					// increment the level
+					level++;
+					
+					// increase the speed every second level
+					if (level % 2 == 0)
+						currentSpeed -= 0.01f;
+					
+					// save the game state
+					saveGame();
+					
+					// Load the level
+					Application.LoadLevel("level");
+				}
+			}
+			else
+			{
+				// user loses the level
+				if (snake.GetComponent<SnakeScript>().getLives() > 0)
+				{
+					// user has lives to retry
+					if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
+					{
+						// set up the game state for saving
+						userWin = true; 
+						int lives = snake.GetComponent<SnakeScript>().getLives()-1;
+						snake.GetComponent<SnakeScript>().setLives(lives);
+						
+						// save the game state
+						saveGame();
+						
+						// Reload the level
+						Application.LoadLevel("level");
+					}
+				}
+			}
+
+			// draw the main menu button as required by all 3 options
+			if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
+			{
+				// save the game state
+				saveGame();
+				
+				// Reload the level
+				Application.LoadLevel("menu");
+			}
+		}
+	}
+
+	// animates the component values of the score board
+	void animateScoreBoard()
+	{
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , visibleScore+1000, "onupdate" , "animateScoreBoardScore","time" , 1 ));
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getLives()+1000, "onupdate" , "animateScoreBoardLives","time" , 1, "delay", 1 ));
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getCoinsCollected()+1000, "onupdate" , "animateScoreBoardCoins","time" , 1, "delay", 2 ));
 	}
 
 	// Changes the currently visible score on the HUD. Called every time iTween changes my
 	// visibleScore variable
 	void ChangeVisibleScore (int i) {
 		visibleScore = i;
+	}
+
+	void animateScoreBoardScore (int i) {
+		scoreBoardScore = i;
+	}
+
+	void animateScoreBoardLives (int i) {
+		scoreBoardLives = i;
+	}
+
+	void animateScoreBoardCoins (int i) {
+		scoreBoardCoins = i;
 	}
 
 	IEnumerator resetWheel() 

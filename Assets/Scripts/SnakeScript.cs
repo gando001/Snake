@@ -685,9 +685,6 @@ public class SnakeScript : MonoBehaviour {
 		
 		// vibrate the device
 		Handheld.Vibrate ();
-		
-		// flash the snake
-		//InvokeRepeating("flashSnake", 0, 0.25f);
 	}
 
 	// randomly choose when to display the coins based on the snake body length
@@ -746,28 +743,6 @@ public class SnakeScript : MonoBehaviour {
 		scoreText.guiText.text = "+"+v;
 		scoreText.position = Camera.main.WorldToViewportPoint(new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z));
 		scoreText.gameObject.SetActive(true);
-	}
-
-	void flashSnake()
-	{
-		// make the snake flash by setting the game objects of the snake to active and inactive
-		if (this.transform.gameObject.activeSelf)
-			this.transform.gameObject.SetActive(false);
-		else
-			this.transform.gameObject.SetActive(true);
-		
-		foreach(Transform body in bodies)
-		{
-			if (body.gameObject.activeSelf)
-				body.gameObject.SetActive(false);
-			else
-				body.gameObject.SetActive(true);
-		}
-		
-		if (tail.transform.gameObject.activeSelf)
-			tail.transform.gameObject.SetActive(false);
-		else
-			tail.transform.gameObject.SetActive(true);
 	}
 
 	void setLeft()
