@@ -160,6 +160,10 @@ public class SnakeScript : MonoBehaviour {
 		lives++;
 	}
 
+	public void loseLife(){
+		lives--;
+	}
+
 	public int getLives(){
 		return lives;
 	}

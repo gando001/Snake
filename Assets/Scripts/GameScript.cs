@@ -768,7 +768,7 @@ public class GameScript : MonoBehaviour {
 
 		// draw the background box at the center of the screen
 		float width = hudWidth*3;
-		float height = hudHeight*6;
+		float height = hudHeight*8;
 		float x = (Screen.width-width)/2;
 		float y = (Screen.height-height)/2;
 		GUI.Box(new Rect(x,y,width,height),"");
@@ -792,14 +792,18 @@ public class GameScript : MonoBehaviour {
 		GUI.Label(new Rect(x,y,width,spriteH), new GUIContent(" "+scoreBoardCoins, coin_sprite));
 
 		// display the buttons
-		x += width/2; 
-		y += spriteH;
-		float w = 100;
-		float h = 100;
+		y += spriteH + hudHeight/2;
+		float w = width/2;
+		float h = w/2;
 		if (paused)
 		{
 			// draw the play or continue button
-
+			if (GUI.Button(new Rect(x,y,w,h),"Play"))
+			{
+				paused = false;
+				Time.timeScale = 1.0f;
+			}
+			x += w/2;
 		}
 		else
 		{
@@ -822,6 +826,7 @@ public class GameScript : MonoBehaviour {
 					// Load the level
 					Application.LoadLevel("level");
 				}
+				x += w/2;
 			}
 			else
 			{
@@ -829,12 +834,11 @@ public class GameScript : MonoBehaviour {
 				if (snake.GetComponent<SnakeScript>().getLives() > 0)
 				{
 					// user has lives to retry
-					if (GUI.Button(new Rect(x-w-(w/4),y,w,h), "Retry"))
+					if (GUI.Button(new Rect(x,y,w,h), "Retry"))
 					{
 						// set up the game state for saving
 						userWin = true; 
-						int lives = snake.GetComponent<SnakeScript>().getLives()-1;
-						snake.GetComponent<SnakeScript>().setLives(lives);
+						snake.GetComponent<SnakeScript>().loseLife();
 						
 						// save the game state
 						saveGame();
@@ -842,18 +846,20 @@ public class GameScript : MonoBehaviour {
 						// Reload the level
 						Application.LoadLevel("level");
 					}
+					x += w/2;
 				}
 			}
+		}
 
-			// draw the main menu button as required by all 3 options
-			if (GUI.Button(new Rect(x+(w/4),y,w,h), "Main Menu"))
-			{
-				// save the game state
-				saveGame();
-				
-				// Reload the level
-				Application.LoadLevel("menu");
-			}
+		// draw the main menu button as required by all 3 options
+		x += width/2-w/2;
+		if (GUI.Button(new Rect(x,y,w,h), "Main Menu"))
+		{
+			// save the game state
+			saveGame();
+			
+			// Reload the level
+			Application.LoadLevel("menu");
 		}
 	}
 
