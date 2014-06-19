@@ -53,11 +53,12 @@ public class GameScript : MonoBehaviour {
 	private Transform bk_parent;
 
 	// HUD variables
-	private float hudWidth;
 	private float hudX;
-	private float hudHeight;
 	private float hudY;
-	private float spriteH;
+	private float hudW;
+	private float hudH;
+	private float hudSpriteY;
+	private float hudSpriteH;
 	private int visibleScore;
 	public Texture2D empty_sprite;
 	public Texture2D life_sprite;
@@ -77,7 +78,7 @@ public class GameScript : MonoBehaviour {
 	private GUISkin skin_normal;
 	private GUISkin skin_pause;
 	private GUISkin skin_play;
-	private GUISkin HUD_blank;
+	private GUISkin skin_hud;
 	private GUISkin menu_skin;
 
 	public void updateGrid(int row, int col, int value)
@@ -130,10 +131,18 @@ public class GameScript : MonoBehaviour {
 			startScoreBoardAnimation = true;
 	}
 
-	public bool isGameOver()
-	{
+	public bool isGameOver(){
 		return gameOver;
 	}
+
+	public void setPause(bool v){
+		paused = v;
+	}
+	
+	public bool isPaused(){
+		return paused;
+	}
+
 
 	// displays the coin in the level
 	public void displayCoin()
@@ -243,7 +252,7 @@ public class GameScript : MonoBehaviour {
 		skin_normal = (GUISkin)Resources.Load("Skins/skin_normal");
 		skin_pause = (GUISkin)Resources.Load("Skins/skin_pause");
 		skin_play = (GUISkin)Resources.Load("Skins/skin_play");
-		HUD_blank = (GUISkin)Resources.Load("Skins/HUD_blank");
+		skin_hud = (GUISkin)Resources.Load("Skins/HUD");
 		menu_skin = (GUISkin)Resources.Load("Skins/Menu_skin");
 	}
 
@@ -262,11 +271,11 @@ public class GameScript : MonoBehaviour {
 		paused = false;
 		
 		// HUD values
-		hudX = GameObject.Find("Middleground").transform.position.x;
 		hudY = GameObject.Find("Middleground").transform.position.y+rows;
-		hudWidth = Screen.width/10;
-		hudHeight = Screen.height/rows;
-		spriteH = hudHeight*1.5f;
+		hudW = Screen.width/7;
+		hudH = Screen.height/rows;
+		hudSpriteY = hudY-hudH/8;
+		hudSpriteH = hudH*1.5f;
 		
 		// create the level
 		createLevel();
@@ -651,62 +660,58 @@ public class GameScript : MonoBehaviour {
 	// draws the HUD
 	void drawHUD()
 	{
-		float x = hudX+hudWidth/2;
-		float padding = hudHeight/4;
+		GUI.skin = skin_hud;
 
-		// level + score
-		GUI.skin = skin_normal;
-		GUI.Box(new Rect(x,hudY+padding,hudWidth*2f,hudHeight), visibleScore+"");
-		GUI.skin = HUD_blank;
-		GUI.Box(new Rect(hudX+10,hudY-padding/2,hudWidth,spriteH), empty_sprite);
-		GUI.Box(new Rect(hudX+10,hudY-padding/2,hudWidth,spriteH), level+"");
-	
-		// add the coins if any are collected
+		float hudX = 0;
+
 		if (snake != null)
 		{	
 			// lives
-			x += 2.5f*hudWidth;
-			int num = snake.GetComponent<SnakeScript>().getLives();
-			GUI.skin = skin_normal;
-			GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), num+"");
-			GUI.skin = HUD_blank;
-			GUI.Box(new Rect(x-hudWidth/2,hudY-padding/2,hudWidth,spriteH), life_sprite);
+			GUI.Box(new Rect(hudX,hudSpriteY,hudW,hudSpriteH), life_sprite);
+			hudX += hudW/2;
+			GUI.Box(new Rect(hudX,hudY,hudW,hudH), "x "+snake.GetComponent<SnakeScript>().getLives());
 
 			// coins
-			x += 1.5f*hudWidth;
-			num = snake.GetComponent<SnakeScript>().getCoinsCollected();
-		
-			GUI.skin = skin_normal;
-			GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), num+"");
-			GUI.skin = HUD_blank;
-			GUI.Box(new Rect(x-hudWidth/2,hudY-padding/2,hudWidth,spriteH), coin_sprite);
+			hudX += hudW/2;
+			GUI.Box(new Rect(hudX,hudSpriteY,hudW,hudSpriteH), coin_sprite);
+			hudX += hudW/2;
+			GUI.Box(new Rect(hudX,hudY,hudW,hudH), "x "+snake.GetComponent<SnakeScript>().getCoinsCollected());
 
 			// display the bonus item if there is one
 			if (snake.GetComponent<SnakeScript>().hasSnakeGotBonusItem())
 			{
-				x += 1.5f*hudWidth;
-				GUI.skin = skin_normal;
-				GUI.Box(new Rect(x,hudY+padding,hudWidth,hudHeight), snake.GetComponent<SnakeScript>().getBonusSeconds()+"");
-				GUI.skin = HUD_blank;
-				GUI.Box(new Rect(x-hudWidth/2,hudY-padding/2,hudWidth,spriteH), bonus_sprite);
+				hudX += hudW/2;		
+				GUI.Box(new Rect(hudX,hudSpriteY,hudW,hudSpriteH), bonus_sprite);
+				hudX += hudW/2;
+				GUI.Box(new Rect(hudX,hudY,hudW,hudH), snake.GetComponent<SnakeScript>().getBonusSeconds()+"");
+				hudX -= hudW;
 			}
 		}
+
+		// score
+		hudX += hudW*2;
+		GUI.Box(new Rect(hudX,hudY,hudW*1.5f,hudH), visibleScore+"");
 	}
 
 	// draws the pause/play menu
 	void drawPause()
 	{
 		// draw a button at the top right corner
-		float x = Screen.width-hudHeight*3;
-		Rect rect = new Rect(x,hudY,hudHeight,hudHeight);
-		if (!paused)
+		float x = Screen.width-hudH*3;
+		Rect rect = new Rect(x,hudY,hudH,hudH);
+		if (!isPaused())
 		{
 			// game is in play mode so display pause sprite
 			GUI.skin = skin_pause;
 			if (GUI.Button(rect,""))
 			{
-				paused = true;
+				setPause(true);
 				Time.timeScale = 0f;
+
+				// set the score board values since we are not animating the values
+				scoreBoardScore = snake.GetComponent<SnakeScript>().getScore();
+				scoreBoardLives = snake.GetComponent<SnakeScript>().getLives();
+				scoreBoardCoins = snake.GetComponent<SnakeScript>().getCoinsCollected();
 			}
 		}
 		else
@@ -718,7 +723,7 @@ public class GameScript : MonoBehaviour {
 			GUI.skin = skin_play;
 			if (GUI.Button(rect,""))
 			{
-				paused = false;
+				setPause(false);
 				Time.timeScale = 1.0f;
 			}
 		}
@@ -759,7 +764,7 @@ public class GameScript : MonoBehaviour {
 	{
 		GUI.skin = menu_skin;
 
-		if (startScoreBoardAnimation && !paused)
+		if (startScoreBoardAnimation && !isPaused())
 		{
 			// only animate once and if not paused
 			animateScoreBoard();
@@ -767,8 +772,8 @@ public class GameScript : MonoBehaviour {
 		}
 
 		// draw the background box at the center of the screen
-		float width = hudWidth*3;
-		float height = hudHeight*8;
+		float width = hudW*3;
+		float height = hudH*8;
 		float x = (Screen.width-width)/2;
 		float y = (Screen.height-height)/2;
 		GUI.Box(new Rect(x,y,width,height),"");
@@ -777,22 +782,22 @@ public class GameScript : MonoBehaviour {
 
 		// level
 		y += 10;
-		GUI.Label(new Rect(x,y,width,hudHeight), "Level "+level+"123456789");
+		GUI.Label(new Rect(x,y,width,hudH), "Level "+level+"123456789");
 
 		// score
-		y += hudHeight;
-		GUI.Label(new Rect(x,y,width,hudHeight), "Score "+scoreBoardScore);
+		y += hudH;
+		GUI.Label(new Rect(x,y,width,hudH), "Score "+scoreBoardScore);
 
 		// lives
-		y += hudHeight;
-		GUI.Label(new Rect(x,y,width,spriteH), new GUIContent(" "+scoreBoardLives, life_sprite));
+		y += hudH;
+		GUI.Label(new Rect(x,y,width,hudSpriteH), new GUIContent(" "+scoreBoardLives, life_sprite));
 
 		// coins
-		y += spriteH;
-		GUI.Label(new Rect(x,y,width,spriteH), new GUIContent(" "+scoreBoardCoins, coin_sprite));
+		y += hudSpriteH;
+		GUI.Label(new Rect(x,y,width,hudSpriteH), new GUIContent(" "+scoreBoardCoins, coin_sprite));
 
 		// display the buttons
-		y += spriteH + hudHeight/2;
+		y += hudSpriteH + hudH/2;
 		float w = width/2;
 		float h = w/2;
 		if (paused)

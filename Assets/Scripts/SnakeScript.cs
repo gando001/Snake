@@ -479,14 +479,14 @@ public class SnakeScript : MonoBehaviour {
 		// determine the other collider
 		if (otherCollider.gameObject.name == "Apple")
 		{	
-			incrementScore(true, GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue());
+			incrementScore(GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue());
 
 			// increment the snake
 			incrementSnake();
 		}
 		else if (otherCollider.gameObject.name == "Coin")
 		{
-			incrementScore(false, GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue());
+			incrementScore(GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue());
 
 			coinCollected();
 
@@ -730,7 +730,7 @@ public class SnakeScript : MonoBehaviour {
 		gameScript.updateGrid(row, col, GameScript.EMPTY);
 	}
 
-	void incrementScore(bool isApple, int v)
+	void incrementScore(int v)
 	{
 		// increment the score
 		if (bonusDoublePoints)

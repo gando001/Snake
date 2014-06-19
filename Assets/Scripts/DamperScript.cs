@@ -7,6 +7,7 @@ public class DamperScript : MonoBehaviour {
 	private bool spinStarted;
 	private float time;
 	private GameObject wheel;
+	private GameScript game;
 
 	public void setStarted()
 	{
@@ -26,19 +27,23 @@ public class DamperScript : MonoBehaviour {
 	{
 		reset();
 		wheel = GameObject.Find("Wheel");
+		game = GameObject.Find("Game").GetComponent<GameScript>();
 	}
 
 	// Update is called once per frame
 	void Update () 
 	{
-		if (spinStarted)
+		if (!game.isPaused())
 		{
-			time--;
-	
-			if (time == 0)
+			if (spinStarted)
 			{
-				wheel.GetComponent<WheelScript>().displayResult(selected_item);
-				spinStarted = false;
+				time--;
+		
+				if (time == 0)
+				{
+					wheel.GetComponent<WheelScript>().displayResult(selected_item);
+					spinStarted = false;
+				}
 			}
 		}
 	}
