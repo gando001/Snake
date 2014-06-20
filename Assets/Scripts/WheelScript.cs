@@ -131,12 +131,11 @@ public class WheelScript : MonoBehaviour {
 		skin = (GUISkin)Resources.Load("Skins/Wheel_Skin");
 
 		// set up box coordinates
-		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("head_wheel").transform.position);
-		x = pos.x-145;
-		y = pos.y-140;
+		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("body_corner_xy").transform.position);
+		x = pos.x;
+		y = pos.y;
 		w = 135;
 		h = 128;
-		itemY = y + 75;
 
 		description = "Spin the wheel!";
 	}
@@ -156,12 +155,12 @@ public class WheelScript : MonoBehaviour {
 
 				// apply the item
 				if (text == "Spin_again")
-				{
 					displayCurrentDescription = true; // no continue button required; user can spin again
-					isFreeSpin = true;
-				}
 				else
+				{
 					showContinue = true; // normal wheel so have a button to continue and apply the item
+					isSwipe = true; // stops the user from spinning again
+				}
 			}
 			else
 			{
@@ -190,6 +189,7 @@ public class WheelScript : MonoBehaviour {
 					snake.GetComponent<SnakeScript>().addLife();
 					description += "\nPhew! You got a life!";
 					showContinue = true;
+					isSwipe = true;
 				}
 				else
 				{
@@ -206,6 +206,7 @@ public class WheelScript : MonoBehaviour {
 						// alter the description and show a button
 						description = "You lose!";
 						showContinue = true;
+						isSwipe = true;
 					}
 				}
 			}
@@ -213,17 +214,17 @@ public class WheelScript : MonoBehaviour {
 		else if (displayCurrentDescription)
 		{
 			// keep displaying the current bonus item sprite and description
-			GUI.Box (new Rect(x,itemY,w,h), description);
+			GUI.Box (new Rect(x,y,w,h), description);
 		}
 		else if (showContinue)
 		{
 			// keep displaying the current bonus item sprite and description
-			GUI.Box (new Rect(x,itemY,w,h), description);
+			GUI.Box (new Rect(x,y,w,h), description);
 
 			if (!isTryingToGetLife)
 			{
 				// normal game play
-				if (GUI.Button(new Rect(x,itemY+h+10,w,50), "Continue"))
+				if (GUI.Button(new Rect(x,y+h,w,50), "Continue"))
 				{	
 					// apply the bonus item
 					if (text == "Spin_slow")
@@ -265,7 +266,7 @@ public class WheelScript : MonoBehaviour {
 			else
 			{
 				// either the user has spun and got a life or has no more coins left to spin
-				if (GUI.Button(new Rect(x,itemY+h+10,w,50), "Continue"))
+				if (GUI.Button(new Rect(x,y+h,w,50), "Continue"))
 				{	
 					// hide the wheel
 					game.hideBonusWheel();

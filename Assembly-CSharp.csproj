@@ -59,6 +59,7 @@
      <Compile Include="Assets\Scripts\SnakeScript.cs" />
      <Compile Include="Assets\Scripts\TeleporterScript.cs" />
      <Compile Include="Assets\Scripts\WheelScript.cs" />
+     <Compile Include="Assets\WheelHaloScript.cs" />
      <Compile Include="Assets\iTween\Plugins\iTween.cs" />
      <Compile Include="Assets\iTween\Sample\MoveSample.cs" />
      <Compile Include="Assets\iTween\Sample\RotateSample.cs" />
