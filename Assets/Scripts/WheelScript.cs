@@ -19,9 +19,10 @@ public class WheelScript : MonoBehaviour {
 	private SpriteRenderer item;
 	private Texture2D sprite;
 	private string description;
-	private float x, y, w, h, itemY;
+	private float x, y, w, h;
 	private GUISkin skin;
 	private GameObject snake;
+	private TextMesh item_description;
 
 	// speed
 	private float speed;
@@ -58,32 +59,32 @@ public class WheelScript : MonoBehaviour {
 		if (text == "Spin_again")
 		{
 			sprite = spin_again;
-			description = "You have won a free spin";
+			description = "You have \nwon \na free spin";
 		}
 		else if (text == "Spin_empty")
 		{
 			sprite = spin_empty;
-			description = "You have won nothing";
+			description = "You have \nwon \nnothing";
 		}
 		else if (text == "Spin_slow")
 		{
 			sprite = spin_slow;
-			description = "Reduce speed";
+			description = "Reduce \nspeed";
 		}
 		else if (text == "Spin_apple")
 		{
 			sprite = spin_apple;
-			description = "Remove apples";
+			description = "Remove \napples";
 		}
 		else if (text == "Spin_double_points")
 		{
 			sprite = spin_double_points;
-			description = "Double points";
+			description = "Double \npoints";
 		}
 		else if (text == "Spin_half_snake")
 		{
 			sprite = spin_half_snake;
-			description = "Cut snake in half";
+			description = "Cut snake \nin half";
 		}
 		else if (text == "Spin_coin")
 		{
@@ -93,7 +94,7 @@ public class WheelScript : MonoBehaviour {
 		else if (text == "Spin_speed")
 		{
 			sprite = spin_speed;
-			description = "Increase speed";
+			description = "Increase \nspeed";
 		}
 		else if (text == "Spin_life")
 		{
@@ -103,11 +104,12 @@ public class WheelScript : MonoBehaviour {
 		else if (text == "Spin_opposite")
 		{
 			sprite = spin_opposite;
-			description = "Upside down, good luck!";
+			description = "Upside down, \ngood luck!";
 		}
 
-		// create a sprite
+		// create a sprite and display its description
 		item.sprite = Sprite.Create(sprite, new Rect(0,0,sprite.width,sprite.height), new Vector2(0.5f,0.5f));
+		item_description.text = description;
 	}
 
 	public void setLevelSpin() 
@@ -127,17 +129,16 @@ public class WheelScript : MonoBehaviour {
 
 		game = GameObject.Find("Game").GetComponent<GameScript>();
 		item = GameObject.Find("Item").GetComponent<SpriteRenderer>();
+		item_description = GameObject.Find("Item_description").GetComponent<TextMesh>();
 		snake = GameObject.Find("Snake");
 		skin = (GUISkin)Resources.Load("Skins/Wheel_Skin");
 
 		// set up box coordinates
-		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("body_corner_xy").transform.position);
+		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("Item_description").transform.position);
 		x = pos.x;
 		y = pos.y;
 		w = 135;
 		h = 128;
-
-		description = "Spin the wheel!";
 	}
 
 	void OnGUI ()
@@ -197,7 +198,7 @@ public class WheelScript : MonoBehaviour {
 					if (snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
 					{
 						// user has more coins to try again
-						description += "Try again!";
+						description += "\nTry again!";
 						displayCurrentDescription = true; // no continue button required; user can spin again
 					}
 					else
@@ -214,13 +215,13 @@ public class WheelScript : MonoBehaviour {
 		else if (displayCurrentDescription)
 		{
 			// keep displaying the current bonus item sprite and description
-			GUI.Box (new Rect(x,y,w,h), description);
+			item_description.text = description;
 		}
 		else if (showContinue)
 		{
 			// keep displaying the current bonus item sprite and description
-			GUI.Box (new Rect(x,y,w,h), description);
-
+			item_description.text = description;
+			
 			if (!isTryingToGetLife)
 			{
 				// normal game play
@@ -230,17 +231,17 @@ public class WheelScript : MonoBehaviour {
 					if (text == "Spin_slow")
 					{
 						snake.GetComponent<SnakeScript>().slowmoSnake();
-						game.setBonusSprite(spin_slow);
+						game.setBonusSprite(item.sprite);
 					}
 					else if (text == "Spin_apple")
 					{
 						snake.GetComponent<SnakeScript>().hideApple();
-						game.setBonusSprite(spin_apple);
+						game.setBonusSprite(item.sprite);
 					}
 					else if (text == "Spin_double_points")
 					{
 						snake.GetComponent<SnakeScript>().setDoublePoints();
-						game.setBonusSprite(spin_double_points);
+						game.setBonusSprite(item.sprite);
 					}
 					else if (text == "Spin_half_snake")
 						snake.GetComponent<SnakeScript>().halfSnake();
@@ -249,15 +250,17 @@ public class WheelScript : MonoBehaviour {
 					else if (text == "Spin_speed")
 					{
 						snake.GetComponent<SnakeScript>().speedSnake();
-						game.setBonusSprite(spin_speed);
+						game.setBonusSprite(item.sprite);
 					}
 					else if (text == "Spin_life")
 						snake.GetComponent<SnakeScript>().addLife();
 					else if (text == "Spin_opposite")
 					{
 						snake.GetComponent<SnakeScript>().setRotate();
-						game.setBonusSprite(spin_opposite);
+						game.setBonusSprite(item.sprite);
 					}
+
+					resetWheel();
 					
 					// hide the wheel
 					game.hideBonusWheel();
@@ -268,6 +271,8 @@ public class WheelScript : MonoBehaviour {
 				// either the user has spun and got a life or has no more coins left to spin
 				if (GUI.Button(new Rect(x,y+h,w,50), "Continue"))
 				{	
+					resetWheel();
+
 					// hide the wheel
 					game.hideBonusWheel();
 				}
@@ -276,22 +281,12 @@ public class WheelScript : MonoBehaviour {
 		else
 		{
 			// create the content
+			description = "Spin the \nwheel!";
 			if (isTryingToGetLife && isFirstSpin)
-				description =  "Use your coins to spin the wheel for a life!"; // this is only required when spinning for a life the first time
-
-			GUIContent c = new GUIContent(description);
-
-			item.sprite = null;
+				description =  "Use your \ncoins to \nspin the wheel \nfor a life!"; // this is only required when spinning for a life the first time
 		
-			GUIStyle style = new GUIStyle();
-			style.wordWrap = true;
-			style.fontSize = 18;
-
-			// calculate the height
-			float h = style.CalcHeight(c,w);
-
-			// display the label
-			GUI.Box (new Rect(x,y,w,h), c);
+			item.sprite = null;
+			item_description.text = description;
 		}
 	}
 	

@@ -20,7 +20,6 @@ public class SnakeScript : MonoBehaviour {
 	private bool right;
 	private bool up;
 	private bool down;
-	private bool getUserInput;
 	private float lastUpdate;
 	private Transform parent;
 	private int row;
@@ -30,6 +29,7 @@ public class SnakeScript : MonoBehaviour {
 	private ArrayList bodies;
 	private int direction;
 	private int tail_direction;
+	private bool started;
 
 	// coins
 	private int number_of_coins;
@@ -267,6 +267,7 @@ public class SnakeScript : MonoBehaviour {
 		bonusDoublePoints = false;
 		bonusRemoveApple = false;
 		bonusRotate = false;
+		CancelInvoke ("BonusCountdown");
 	}
 
 	public bool hasSnakeGotBonusItem(){
@@ -275,6 +276,10 @@ public class SnakeScript : MonoBehaviour {
 
 	public int getBonusSeconds(){
 		return bonusSeconds;
+	}
+
+	public void setStarted(bool v) {
+		started = v;
 	}
 	
 	
@@ -288,7 +293,7 @@ public class SnakeScript : MonoBehaviour {
 		body_parts = 0;
 		lastUpdate = 0;
 		bodies = new ArrayList();
-		getUserInput = true;
+		started = false;
 
 		// bonus
 		bonusWheelShowing = false;
@@ -323,6 +328,8 @@ public class SnakeScript : MonoBehaviour {
 			if (Input.touchCount > 0 && !isBonusWheelShowing()) 
 			{
 				Touch touch = Input.GetTouch(0);
+				if (!started)
+					started = true;
 
 				// user input is swiping the screen
 				if (touch.phase == TouchPhase.Moved)
@@ -380,21 +387,33 @@ public class SnakeScript : MonoBehaviour {
 				{
 					// left
 					setLeft();	
+
+					if (!started)
+						started = true;
 				}
 				else if (!left && inputX > 0)
 				{
 					// right
 					setRight();
+
+					if (!started)
+						started = true;
 				}
 				else if (!down && inputY > 0)
 				{
 					// up
 					setUp();
+
+					if (!started)
+						started = true;
 				}
 				else if (!up && inputY < 0)
 				{
 					// down	
 					setDown();
+
+					if (!started)
+						started = true;
 				}
 			}
 		}
@@ -406,7 +425,7 @@ public class SnakeScript : MonoBehaviour {
 		// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
 
 		// update when it is time to and the game isn't over
-		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver() && !isBonusWheelShowing())
+		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver() && !isBonusWheelShowing() && started)
 		{	
 			// continue in the same direction
 			if (left)
@@ -461,7 +480,6 @@ public class SnakeScript : MonoBehaviour {
 				updateSprites();
 				
 				lastUpdate = Time.time;
-				getUserInput = true;
 			}
 			else
 			{
@@ -499,6 +517,9 @@ public class SnakeScript : MonoBehaviour {
 
 			// remove the bonus pick up
 			gameScript.bonus.SetActive(false);
+
+			// remove any current bonus items
+			removeAppliedBonusItems();
 
 			// show the bonus wheel
 			gameScript.displayBonusWheel();
@@ -787,10 +808,12 @@ public class SnakeScript : MonoBehaviour {
 
 	void BonusCountdown () 
 	{
-		if (--bonusSeconds == 0)
+		if (started)
 		{
-			removeAppliedBonusItems();
-			CancelInvoke ("Countdown");
+			if (--bonusSeconds == 0)
+			{
+				removeAppliedBonusItems();
+			}
 		}
 	}
 }
