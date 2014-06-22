@@ -62,6 +62,7 @@ public class GameScript : MonoBehaviour {
 	public Texture2D life_sprite;
 	public Texture2D coin_sprite;
 	public GameObject bonus_item;
+	public TextMesh hud_level;
 	public TextMesh hud_lives;
 	public TextMesh hud_coins;
 	public TextMesh hud_bonus;
@@ -278,7 +279,7 @@ public class GameScript : MonoBehaviour {
 
 		gameOver = false;
 		userWin = false;
-		paused = false;
+		setPause(false);
 		
 		// HUD values
 		hudW = Screen.width/7;
@@ -341,18 +342,59 @@ public class GameScript : MonoBehaviour {
 			// user pressed the go back button so load the menu
 			Application.LoadLevel("menu");
 		}
+
+		// HUD
+		hud_level.text = ""+level;
+		hud_lives.text = ""+snake.GetComponent<SnakeScript>().getLives();
+		hud_coins.text = ""+snake.GetComponent<SnakeScript>().getCoinsCollected();
+		hud_score.text = visibleScore+"";
+			
+		// display the bonus item if there is one
+		if (snake.GetComponent<SnakeScript>().hasSnakeGotBonusItem())
+			hud_bonus.text = snake.GetComponent<SnakeScript>().getBonusSeconds()+"";
+		else
+		{
+			setBonusSprite(null);
+			hud_bonus.text = "";
+		}
 	}   
 
 	void OnGUI ()
 	{
-		// draws the HUD
-		drawHUD();
-
 		// draws the pause/play menu
-		drawPause();
+		if (isPaused())
+		{
+			// game paused so set the score board values since we are not animating the values
+			scoreBoardScore = snake.GetComponent<SnakeScript>().getScore();
+			scoreBoardLives = snake.GetComponent<SnakeScript>().getLives();
+			scoreBoardCoins = snake.GetComponent<SnakeScript>().getCoinsCollected();
+			
+			// draw the score board
+			drawScoreBoard();
+		}
 
 		// draw the menu
-		drawMenu();
+		// only display the menu if the bonus wheel is not showing; i.e: user is trying to use coins on the wheel
+		if (!bonus_wheel.activeSelf && isGameOver())
+		{
+			// remove any bonus items
+			snake.GetComponent<SnakeScript>().removeAppliedBonusItems();
+			
+			if (!userWin && snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
+			{
+				// user has lost the level but has coins for the bonus wheel
+				displayBonusWheel();
+				
+				// notify the wheel that this is for a level retry - need this hack to delay the call
+				StartCoroutine(resetWheel());
+			}
+			else
+			{
+				// user has either won the level, lost but has lives or lost the game
+				// so draw the score board
+				drawScoreBoard();
+			}
+		}
 	}
 
 
@@ -659,69 +701,8 @@ public class GameScript : MonoBehaviour {
 
 
 
+
 	
-	// draws the HUD
-	void drawHUD()
-	{
-		if (!isPaused())
-		{
-			if (snake != null)
-			{	
-				hud_lives.text = ""+snake.GetComponent<SnakeScript>().getLives();
-				hud_coins.text = ""+snake.GetComponent<SnakeScript>().getCoinsCollected();
-
-				// display the bonus item if there is one
-				if (snake.GetComponent<SnakeScript>().hasSnakeGotBonusItem())
-					hud_bonus.text = snake.GetComponent<SnakeScript>().getBonusSeconds()+"";
-			}
-
-			hud_score.text = visibleScore+"";
-		}
-	}
-
-	// draws the pause/play menu
-	void drawPause()
-	{
-		if (isPaused())
-		{
-			// game paused so set the score board values since we are not animating the values
-			scoreBoardScore = snake.GetComponent<SnakeScript>().getScore();
-			scoreBoardLives = snake.GetComponent<SnakeScript>().getLives();
-			scoreBoardCoins = snake.GetComponent<SnakeScript>().getCoinsCollected();
-
-			// draw the score board
-			drawScoreBoard();
-		}
-	}
-
-	// draws the menu once the level has finished
-	void drawMenu()
-	{
-		// only display the menu if the bonus wheel is not showing; i.e: user is trying to use coins on the wheel
-		if (!bonus_wheel.activeSelf)
-		{
-			if (isGameOver())
-			{
-				// remove any bonus items
-				snake.GetComponent<SnakeScript>().removeAppliedBonusItems();
-
-				if (!userWin && snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
-				{
-					// user has lost the level but has coins for the bonus wheel
-					displayBonusWheel();
-					
-					// notify the wheel that this is for a level retry - need this hack to delay the call
-					StartCoroutine(resetWheel());
-				}
-				else
-				{
-					// user has either won the level, lost but has lives or lost the game
-					// so draw the score board
-					drawScoreBoard();
-				}
-			}
-		}
-	}
 
 	// draws a score board of the current level state
 	void drawScoreBoard()

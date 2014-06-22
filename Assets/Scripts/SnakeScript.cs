@@ -328,8 +328,6 @@ public class SnakeScript : MonoBehaviour {
 			if (Input.touchCount > 0 && !isBonusWheelShowing()) 
 			{
 				Touch touch = Input.GetTouch(0);
-				if (!started)
-					started = true;
 
 				// user input is swiping the screen
 				if (touch.phase == TouchPhase.Moved)
@@ -369,6 +367,10 @@ public class SnakeScript : MonoBehaviour {
 							setDown();
 						}
 					}
+
+					// start to move the snake
+					if (!started)
+						started = true;
 				}
 			}
 		}

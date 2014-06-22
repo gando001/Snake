@@ -135,10 +135,10 @@ public class WheelScript : MonoBehaviour {
 
 		// set up box coordinates
 		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("Item_description").transform.position);
-		x = pos.x;
-		y = pos.y;
 		w = 135;
 		h = 128;
+		x = pos.x - w/2;
+		y = pos.y + h;
 	}
 
 	void OnGUI ()
@@ -225,7 +225,7 @@ public class WheelScript : MonoBehaviour {
 			if (!isTryingToGetLife)
 			{
 				// normal game play
-				if (GUI.Button(new Rect(x,y+h,w,50), "Continue"))
+				if (GUI.Button(new Rect(x,y,w,50), "Continue"))
 				{	
 					// apply the bonus item
 					if (text == "Spin_slow")
@@ -269,7 +269,7 @@ public class WheelScript : MonoBehaviour {
 			else
 			{
 				// either the user has spun and got a life or has no more coins left to spin
-				if (GUI.Button(new Rect(x,y+h,w,50), "Continue"))
+				if (GUI.Button(new Rect(x,y,w,50), "Continue"))
 				{	
 					resetWheel();
 
