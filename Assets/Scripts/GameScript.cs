@@ -15,7 +15,9 @@ public class GameScript : MonoBehaviour {
 	public GameObject teleporter_red;
 	public GameObject teleporter_green;
 	public GameObject teleporter_blue;
-	public GameObject scoreboard;
+	public GameObject menu;
+	public GameObject foreground;
+	public GameObject middleground;
 
 	public const bool REAL_DEVICE = false;
 
@@ -52,15 +54,10 @@ public class GameScript : MonoBehaviour {
 	private int currentCoins;
 	private int currentLives;
 	private Transform bk_parent;
+	private bool bonus_wheel_pause;
 
 	// HUD variables
-	private float hudX;
-	private float hudW;
-	private float hudH;
-	private float hudSpriteH;
 	private int visibleScore;
-	public Texture2D life_sprite;
-	public Texture2D coin_sprite;
 	public GameObject bonus_item;
 	public TextMesh hud_level;
 	public TextMesh hud_lives;
@@ -76,9 +73,11 @@ public class GameScript : MonoBehaviour {
 	private int scoreBoardScore;
 	private int scoreBoardLives;
 	private int scoreBoardCoins;
-
-	// GUI skins
-	private GUISkin menu_skin;
+	public TextMesh menu_level_num;
+	public TextMesh menu_score_num;
+	public TextMesh menu_lives_num;
+	public TextMesh menu_coins_num;
+	public GameObject menu_button;
 
 	public void updateGrid(int row, int col, int value)
 	{
@@ -138,11 +137,23 @@ public class GameScript : MonoBehaviour {
 		paused = v;
 
 		if (isPaused())
+		{
 			Time.timeScale = 0f;
+			
+			if (bonus_wheel.activeSelf) {
+				bonus_wheel.SetActive(false);
+				bonus_wheel_pause = true;
+			}
+		}
 		else
 		{
 			Time.timeScale = 1.0f;
-			scoreboard.SetActive(false);
+			menu.SetActive(false);
+
+			if (bonus_wheel_pause) {
+				bonus_wheel.SetActive(true);
+				bonus_wheel_pause = false;
+			}
 		}
 	}
 	
@@ -231,9 +242,14 @@ public class GameScript : MonoBehaviour {
 
 		// remove the background as it slows the wheel rotation
 		bk_parent.gameObject.SetActive(false);
+		middleground.SetActive(false);
+		foreground.SetActive(false);
 
 		// display the wheel
 		bonus_wheel.SetActive(true);
+
+		// set a reference between the wheel and snake objects
+		GameObject.Find("Wheel").GetComponent<WheelScript>().setSnake(snake);
 	}
 
 	public void hideBonusWheel() 
@@ -242,6 +258,8 @@ public class GameScript : MonoBehaviour {
 
 		// display the background
 		bk_parent.gameObject.SetActive(true);
+		middleground.SetActive(true);
+		foreground.SetActive(true);
 
 		// unfreeze the snake
 		snake.GetComponent<SnakeScript>().setBonusWheelShowing(false);
@@ -257,15 +275,38 @@ public class GameScript : MonoBehaviour {
 		bonus_item.GetComponent<SpriteRenderer>().sprite = s;
 	}
 
-
-
-
-	// Use this for initialization when the scene loads
-	void Awake()
+	public void levelPassed()
 	{
-		// skins
-		menu_skin = (GUISkin)Resources.Load("Skins/Menu_skin");
+		// increment the level
+		level++;
+		
+		// increase the speed every second level
+		if (level % 2 == 0)
+			currentSpeed -= 0.01f;
+
+		// save the game state
+		saveGame();
+		
+		// Load the level
+		Application.LoadLevel("level");
 	}
+
+	public void levelRetry()
+	{
+		// set up the game state for saving
+		userWin = true; 
+		snake.GetComponent<SnakeScript>().loseLife();
+		
+		// save the game state
+		saveGame();
+		
+		// Reload the level
+		Application.LoadLevel("level");
+	}
+
+
+
+	
 
 	// Use this for initialization
 	void Start () 
@@ -279,12 +320,8 @@ public class GameScript : MonoBehaviour {
 
 		gameOver = false;
 		userWin = false;
+		bonus_wheel_pause = false;
 		setPause(false);
-		
-		// HUD values
-		hudW = Screen.width/7;
-		hudH = Screen.height/rows;
-		hudSpriteH = hudH*1.5f;
 
 		// create the level
 		createLevel();
@@ -312,11 +349,6 @@ public class GameScript : MonoBehaviour {
 		apple.transform.parent = GameObject.Find("Foreground").transform;
 		apple.name = "Apple";
 		moveApple();
-
-		// create the score board
-		scoreboard = Instantiate(scoreboard) as GameObject;
-		scoreboard.transform.parent = GameObject.Find("Foreground").transform;
-		scoreboard.SetActive(false);
 	}
 
 	// Update is called once per frame
@@ -335,12 +367,39 @@ public class GameScript : MonoBehaviour {
 				// user failed this level
 				userWin = false;
 			}
-		}
 
-		if (Input.GetKeyDown(KeyCode.Escape))
+			// draw the menu
+			// only display the menu if the bonus wheel is not showing; i.e: user is trying to use coins on the wheel
+			if (!bonus_wheel.activeSelf)
+			{
+				// remove any bonus items
+				snake.GetComponent<SnakeScript>().removeAppliedBonusItems();
+				
+				if (!userWin && snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
+				{
+					// user has lost the level but has coins for the bonus wheel
+					displayBonusWheel();
+					
+					// notify the wheel that this is for a level retry - need this hack to delay the call
+					StartCoroutine(resetWheel());
+				}
+				else
+				{
+					// user has either won the level, lost but has lives or lost the game
+					// so draw the score board
+					drawScoreBoard();
+				}
+			}
+		}
+		else if (isPaused())
 		{
-			// user pressed the go back button so load the menu
-			Application.LoadLevel("menu");
+			// game paused so set the score board values since we are not animating the values
+			scoreBoardScore = snake.GetComponent<SnakeScript>().getScore();
+			scoreBoardLives = snake.GetComponent<SnakeScript>().getLives();
+			scoreBoardCoins = snake.GetComponent<SnakeScript>().getCoinsCollected();
+			
+			// draw the score board
+			drawScoreBoard();
 		}
 
 		// HUD
@@ -357,43 +416,26 @@ public class GameScript : MonoBehaviour {
 			setBonusSprite(null);
 			hud_bonus.text = "";
 		}
+
+		if (Input.GetKeyDown(KeyCode.Escape))
+		{
+			// user pressed the go back button so save the game state
+			saveGame();
+
+			// load the main menu
+			Application.LoadLevel("menu");
+		}
 	}   
 
-	void OnGUI ()
+	// called when the home button is pressed
+	void OnApplicationPause(bool paused) 
 	{
-		// draws the pause/play menu
-		if (isPaused())
+		if (paused)
 		{
-			// game paused so set the score board values since we are not animating the values
-			scoreBoardScore = snake.GetComponent<SnakeScript>().getScore();
-			scoreBoardLives = snake.GetComponent<SnakeScript>().getLives();
-			scoreBoardCoins = snake.GetComponent<SnakeScript>().getCoinsCollected();
-			
-			// draw the score board
-			drawScoreBoard();
-		}
+			setPause(true);
 
-		// draw the menu
-		// only display the menu if the bonus wheel is not showing; i.e: user is trying to use coins on the wheel
-		if (!bonus_wheel.activeSelf && isGameOver())
-		{
-			// remove any bonus items
-			snake.GetComponent<SnakeScript>().removeAppliedBonusItems();
-			
-			if (!userWin && snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
-			{
-				// user has lost the level but has coins for the bonus wheel
-				displayBonusWheel();
-				
-				// notify the wheel that this is for a level retry - need this hack to delay the call
-				StartCoroutine(resetWheel());
-			}
-			else
-			{
-				// user has either won the level, lost but has lives or lost the game
-				// so draw the score board
-				drawScoreBoard();
-			}
+			// save the game state
+			saveGame();
 		}
 	}
 
@@ -410,7 +452,7 @@ public class GameScript : MonoBehaviour {
 
 		// the backround or empty objects will be a child of the background
 		bk_parent = GameObject.Find("Background").transform;
-
+	
 		// read all of the lines into an array
 		TextAsset level_file = (TextAsset)Resources.Load("Levels/level_"+level);
 		string[] lines = level_file.text.Split("\n"[0]);
@@ -642,7 +684,6 @@ public class GameScript : MonoBehaviour {
 		this.displayBonusPickUp();
 
 		bonus_wheel = Instantiate(bonus_wheel) as GameObject;
-		bonus_wheel.transform.parent = GameObject.Find("Foreground").transform;
 		bonus_wheel.name = "Bonus Wheel";
 		bonus_wheel.SetActive(false);
 	}
@@ -667,19 +708,17 @@ public class GameScript : MonoBehaviour {
 		currentLives = PlayerPrefs.GetInt(LIVES);
 	
 		visibleScore = currentScore;
-
-		//level = 16;
 	}
 	
 	// saves the game state 
-	void saveGame()
+	public void saveGame()
 	{
-		// store the game state
-		if (userWin)
+		// store the game state when the user passes a level or decides to leave a level before winning or losing
+		if (userWin || !isGameOver())
 		{
 			PlayerPrefs.SetInt(LEVEL, level);
 			PlayerPrefs.SetInt(SCORE, snake.GetComponent<SnakeScript>().getScore());
-			PlayerPrefs.SetFloat(SPEED, snake.GetComponent<SnakeScript>().getSpeed());
+			PlayerPrefs.SetFloat(SPEED, currentSpeed);
 			PlayerPrefs.SetInt(COINS, snake.GetComponent<SnakeScript>().getCoinsCollected());
 			PlayerPrefs.SetInt(LIVES, snake.GetComponent<SnakeScript>().getLives());
 		}
@@ -698,17 +737,10 @@ public class GameScript : MonoBehaviour {
 		PlayerPrefs.SetInt(COINS, 0);
 		PlayerPrefs.SetInt(LIVES, 0);
 	}
-
-
-
-
 	
-
 	// draws a score board of the current level state
 	void drawScoreBoard()
 	{
-		GUI.skin = menu_skin;
-
 		if (startScoreBoardAnimation && !isPaused())
 		{
 			// only animate once and if not paused
@@ -716,40 +748,16 @@ public class GameScript : MonoBehaviour {
 			startScoreBoardAnimation = false;
 		}
 
-		float width = hudW*3;
-		float height = hudH*8;
-		float x = (Screen.width-width)/2;
-		float y = (Screen.height-height)/2;
-		scoreboard.SetActive(true);
+		menu.SetActive(true);
+		menu_level_num.text = level+"";
+		menu_score_num.text = scoreBoardScore+"";
+		menu_lives_num.text = scoreBoardLives+"";
+		menu_coins_num.text = scoreBoardCoins+"";
 
-		// draw the components
-
-		// level
-		y += 10;
-		GUI.Label(new Rect(x,y,width,hudH), "Level "+level);
-
-		// score
-		y += hudH;
-		GUI.Label(new Rect(x,y,width,hudH), "Score "+scoreBoardScore);
-
-		// lives
-		y += hudH;
-		GUI.Label(new Rect(x,y,width,hudSpriteH), new GUIContent(" "+scoreBoardLives, life_sprite));
-
-		// coins
-		y += hudSpriteH;
-		GUI.Label(new Rect(x,y,width,hudSpriteH), new GUIContent(" "+scoreBoardCoins, coin_sprite));
-
-		// display the buttons
-		y += hudSpriteH + hudH/2;
-		float w = width/2;
-		float h = w/2;
 		if (isPaused())
 		{
-			// draw the play or continue button
-			if (GUI.Button(new Rect(x,y,w,h),"Play"))
-				setPause(false);
-			x += w/2;
+			// display the play button
+			menu_button.GetComponent<MenuButtonAdvancedScript>().setState(MenuButtonAdvancedScript.PAUSED);
 		}
 		else
 		{
@@ -757,22 +765,7 @@ public class GameScript : MonoBehaviour {
 			if (userWin)
 			{
 				// user wins the level
-				if (GUI.Button(new Rect(x,y,w,h), "Next"))
-				{
-					// increment the level
-					level++;
-					
-					// increase the speed every second level
-					if (level % 2 == 0)
-						currentSpeed -= 0.01f;
-					
-					// save the game state
-					saveGame();
-					
-					// Load the level
-					Application.LoadLevel("level");
-				}
-				x += w/2;
+				menu_button.GetComponent<MenuButtonAdvancedScript>().setState(MenuButtonAdvancedScript.WON);
 			}
 			else
 			{
@@ -780,32 +773,16 @@ public class GameScript : MonoBehaviour {
 				if (snake.GetComponent<SnakeScript>().getLives() > 0)
 				{
 					// user has lives to retry
-					if (GUI.Button(new Rect(x,y,w,h), "Retry"))
-					{
-						// set up the game state for saving
-						userWin = true; 
-						snake.GetComponent<SnakeScript>().loseLife();
-						
-						// save the game state
-						saveGame();
-						
-						// Reload the level
-						Application.LoadLevel("level");
-					}
-					x += w/2;
+					menu_button.GetComponent<MenuButtonAdvancedScript>().setState(MenuButtonAdvancedScript.RETRY);
+				}
+				else
+				{
+					// user loses the level
+					menu_button.SetActive(false);
+					Vector3 pos = GameObject.Find("Menu_button").transform.position;
+					GameObject.Find("Menu_button").transform.position = new Vector3(0, pos.y, pos.z);
 				}
 			}
-		}
-
-		// draw the main menu button as required by all 3 options
-		x += width/2-w/2;
-		if (GUI.Button(new Rect(x,y,w,h), "Main Menu"))
-		{
-			// save the game state
-			saveGame();
-			
-			// Reload the level
-			Application.LoadLevel("menu");
 		}
 	}
 

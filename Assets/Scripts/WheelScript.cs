@@ -6,6 +6,10 @@ public class WheelScript : MonoBehaviour {
 	// bonus sprites
 	public Texture2D spin_again, spin_empty, spin_slow, spin_apple, spin_double_points, spin_half_snake, spin_coin, spin_speed, spin_life, spin_opposite;
 
+	public GameObject damper;
+	private GameObject snake;
+	public GameObject button;
+
 	private bool isSwipe;
 	private bool isSpinning;
 	private bool isFinished;
@@ -19,9 +23,6 @@ public class WheelScript : MonoBehaviour {
 	private SpriteRenderer item;
 	private Texture2D sprite;
 	private string description;
-	private float x, y, w, h;
-	private GUISkin skin;
-	private GameObject snake;
 	private TextMesh item_description;
 
 	// speed
@@ -47,7 +48,8 @@ public class WheelScript : MonoBehaviour {
 		isFreeSpin = false;
 		displayCurrentDescription = false;
 		showContinue = false;
-		GameObject.Find("Damper").GetComponent<DamperScript>().reset();
+		damper.GetComponent<DamperScript>().reset();
+		button.GetComponent<WheelButtonScript>().reset();
 	}
 
 	public void displayResult(string txt)
@@ -119,6 +121,10 @@ public class WheelScript : MonoBehaviour {
 		isFirstSpin = true;
 	}
 
+	public void setSnake(GameObject g) {
+		snake = g;
+	}
+
 
 	
 
@@ -130,30 +136,113 @@ public class WheelScript : MonoBehaviour {
 		game = GameObject.Find("Game").GetComponent<GameScript>();
 		item = GameObject.Find("Item").GetComponent<SpriteRenderer>();
 		item_description = GameObject.Find("Item_description").GetComponent<TextMesh>();
-		snake = GameObject.Find("Snake");
-		skin = (GUISkin)Resources.Load("Skins/Wheel_Skin");
-
-		// set up box coordinates
-		Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("Item_description").transform.position);
-		w = 135;
-		h = 128;
-		x = pos.x - w/2;
-		y = pos.y + h;
+	}
+	
+	// Update is called once per frame
+	void Update () 
+	{
+		getUserInput();
+		handleSpinResult();
 	}
 
-	void OnGUI ()
+	// handles all of the functionality of user input and initiating the spin
+	void getUserInput()
 	{
-		GUI.skin = skin;
+		if (GameScript.REAL_DEVICE)
+		{
+			if (!isSwipe && Time.timeScale != 0)
+			{
+				if (Input.touchCount > 0) 
+				{
+					Touch touch = Input.GetTouch(0);
+					
+					// user is swiping the screen
+					if (touch.phase == TouchPhase.Began)
+					{
+						// save the y point and time when the screen was touched
+						startY = Input.GetTouch(0).position.y;
+						startTime = Time.time;
+					}
+					else if (touch.phase == TouchPhase.Ended)
+					{
+						// get the distance moved and time
+						endY =  Input.GetTouch(0).position.y - startY;
+						endTime = Time.time - startTime;
+						
+						// speed is distance divided by time
+						speed = Mathf.Abs(endY/endTime);
+						
+						if (speed > MIN_SPEED)
+						{
+							isSwipe = true;
+							isSpinning = true;
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if (!isSwipe && Time.timeScale != 0)
+			{
+				if(Input.GetMouseButtonDown(0))
+				{
+					// save the y point and time when the mouse was pressed
+					startY = Input.mousePosition.y;
+					startTime = Time.time;
+				}
+				else if(Input.GetMouseButtonUp(0))
+				{
+					// get the distance moved and time
+					endY =  Input.mousePosition.y - startY;
+					endTime = Time.time - startTime;
+					
+					// speed is distance divided by time
+					speed = Mathf.Abs(endY/endTime);
+					
+					if (speed > MIN_SPEED)
+					{
+						isSwipe = true;
+						isSpinning = true;
+					}
+				}
+			}
+		}
+		
+		if (isSpinning)
+		{
+			float z = 10;
+			if (endY < startY)
+				z = -z;
+			rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
+			rigidbody.AddTorque(new Vector3(0,0,z) * speed);
+			GameObject.Find("Inner Wheel").rigidbody.AddTorque(new Vector3(0,0,-z) * speed);
+			
+			isSpinning = false;
+			
+			damper.GetComponent<DamperScript>().setStarted(); // notify the damper
+			
+			if (isTryingToGetLife && !isFreeSpin)
+			{
+				// reduce the coins count
+				int num = snake.GetComponent<SnakeScript>().getCoinsCollected()-1;
+				snake.GetComponent<SnakeScript>().setCoinsCollected(num);
+			}
+		}
+	}
 
+	// handles what the wheel finishes on
+	void handleSpinResult()
+	{	
 		if (isFinished)
 		{
 			if (!isTryingToGetLife)
 			{
 				// normal game play mode 
-
+				
 				// reset the damper and wheel to reset all the flags
 				resetWheel();
-
+				
 				// apply the item
 				if (text == "Spin_again")
 					displayCurrentDescription = true; // no continue button required; user can spin again
@@ -168,7 +257,7 @@ public class WheelScript : MonoBehaviour {
 				// reset the damper and wheel to reset all the flags
 				resetWheel();
 				isTryingToGetLife = true;
-
+				
 				// user is using coins to get a life
 				if (text == "Spin_again")
 				{
@@ -179,16 +268,16 @@ public class WheelScript : MonoBehaviour {
 				{ 
 					// increase the coin count
 					snake.GetComponent<SnakeScript>().coinCollected();
-
+					
 					// alter the description
-					description += "\nSpin again!";
-					displayCurrentDescription = true; // no continue button required; user can spin again
+					description = "You can \nspin again!";
+					displayCurrentDescription = true; // no continue button required; user has to spin again
 				}
 				else if (text == "Spin_life")
 				{
 					// user won a life so display the button to continue
 					snake.GetComponent<SnakeScript>().addLife();
-					description += "\nPhew! You got a life!";
+					description = "Phew! \nYou got a life!";
 					showContinue = true;
 					isSwipe = true;
 				}
@@ -198,7 +287,7 @@ public class WheelScript : MonoBehaviour {
 					if (snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
 					{
 						// user has more coins to try again
-						description += "\nTry again!";
+						description = "Bad luck!\nTry again!";
 						displayCurrentDescription = true; // no continue button required; user can spin again
 					}
 					else
@@ -221,12 +310,16 @@ public class WheelScript : MonoBehaviour {
 		{
 			// keep displaying the current bonus item sprite and description
 			item_description.text = description;
+			button.GetComponent<WheelButtonScript>().displaySpite();
 			
 			if (!isTryingToGetLife)
 			{
 				// normal game play
-				if (GUI.Button(new Rect(x,y,w,50), "Continue"))
-				{	
+				if (button.GetComponent<WheelButtonScript>().isButtonClicked())
+				{		
+					// hide the wheel
+					game.hideBonusWheel();
+					
 					// apply the bonus item
 					if (text == "Spin_slow")
 					{
@@ -259,20 +352,17 @@ public class WheelScript : MonoBehaviour {
 						snake.GetComponent<SnakeScript>().setRotate();
 						game.setBonusSprite(item.sprite);
 					}
-
-					resetWheel();
 					
-					// hide the wheel
-					game.hideBonusWheel();
+					resetWheel();
 				}
 			}
 			else
 			{
 				// either the user has spun and got a life or has no more coins left to spin
-				if (GUI.Button(new Rect(x,y,w,50), "Continue"))
+				if (button.GetComponent<WheelButtonScript>().isButtonClicked())
 				{	
 					resetWheel();
-
+					
 					// hide the wheel
 					game.hideBonusWheel();
 				}
@@ -284,95 +374,9 @@ public class WheelScript : MonoBehaviour {
 			description = "Spin the \nwheel!";
 			if (isTryingToGetLife && isFirstSpin)
 				description =  "Use your \ncoins to \nspin the wheel \nfor a life!"; // this is only required when spinning for a life the first time
-		
+			
 			item.sprite = null;
 			item_description.text = description;
-		}
-	}
-	
-	// Update is called once per frame
-	void Update () 
-	{
-		if (GameScript.REAL_DEVICE)
-		{
-			if (!isSwipe && Time.timeScale != 0)
-			{
-				if (Input.touchCount > 0) 
-				{
-					Touch touch = Input.GetTouch(0);
-					
-					// user is swiping the screen
-					if (touch.phase == TouchPhase.Began)
-					{
-						// save the y point and time when the screen was touched
-						startY = Input.GetTouch(0).position.y;
-						startTime = Time.time;
-					}
-					else if (touch.phase == TouchPhase.Ended)
-					{
-						// get the distance moved and time
-						endY =  Input.GetTouch(0).position.y - startY;
-						endTime = Time.time - startTime;
-						
-						// speed is distance divided by time
-						speed = Mathf.Abs(endY/endTime);
-
-						if (speed > MIN_SPEED)
-						{
-							isSwipe = true;
-							isSpinning = true;
-						}
-					}
-				}
-			}
-		}
-		else
-		{
-			if (!isSwipe && Time.timeScale != 0)
-			{
-				if(Input.GetMouseButtonDown(0))
-				{
-					// save the y point and time when the mouse was pressed
-					startY = Input.mousePosition.y;
-					startTime = Time.time;
-				}
-				else if(Input.GetMouseButtonUp(0))
-				{
-					// get the distance moved and time
-					endY =  Input.mousePosition.y - startY;
-					endTime = Time.time - startTime;
-
-					// speed is distance divided by time
-					speed = Mathf.Abs(endY/endTime);
-
-					if (speed > MIN_SPEED)
-					{
-						isSwipe = true;
-						isSpinning = true;
-					}
-				}
-			}
-		}
-
-		if (isSpinning)
-		{
-			float z = 10;
-			if (endY < startY)
-				z = -z;
-			rigidbody.maxAngularVelocity = 100; // this allows for varying torque values
-			rigidbody.AddTorque(new Vector3(0,0,z) * speed);
-			GameObject.Find("Inner Wheel").rigidbody.AddTorque(new Vector3(0,0,-z) * speed);
-
-			isSpinning = false;
-
-			GameObject.Find("Damper").GetComponent<DamperScript>().setStarted(); // notify the damper
-
-			if (isTryingToGetLife && !isFreeSpin)
-			{
-				// reduce the coins count
-				int num = snake.GetComponent<SnakeScript>().getCoinsCollected()-1;
-				snake.GetComponent<SnakeScript>().setCoinsCollected(num);
-			}
 		}
 	}
 }

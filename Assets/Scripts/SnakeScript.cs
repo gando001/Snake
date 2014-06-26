@@ -499,14 +499,14 @@ public class SnakeScript : MonoBehaviour {
 		// determine the other collider
 		if (otherCollider.gameObject.name == "Apple")
 		{	
-			incrementScore(GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue());
+			incrementScore(GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue(), false);
 
 			// increment the snake
 			incrementSnake();
 		}
 		else if (otherCollider.gameObject.name == "Coin")
 		{
-			incrementScore(GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue());
+			incrementScore(GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue(), true);
 
 			coinCollected();
 
@@ -753,7 +753,7 @@ public class SnakeScript : MonoBehaviour {
 		gameScript.updateGrid(row, col, GameScript.EMPTY);
 	}
 
-	void incrementScore(int v)
+	void incrementScore(int v, bool coin)
 	{
 		// increment the score
 		if (bonusDoublePoints)
@@ -763,11 +763,16 @@ public class SnakeScript : MonoBehaviour {
 		// animate the HUD score
 		gameScript.animateHUDScore();
 
-		// create the score object where the apple was
+		// create the score object where the pick up was
 		scoreText = Instantiate(scoreText) as Transform;
 		scoreText.parent = parent;
 		scoreText.name = "scoreText";
 		scoreText.guiText.text = "+"+v;
+
+		scoreText.guiText.color = Color.white;
+		if (coin)
+			scoreText.guiText.color = Color.yellow;
+
 		scoreText.position = Camera.main.WorldToViewportPoint(new Vector3(col+transform.parent.position.x, row+transform.parent.position.y, (float)parent.position.z));
 		scoreText.gameObject.SetActive(true);
 	}

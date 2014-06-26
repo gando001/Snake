@@ -55,11 +55,14 @@
      <Compile Include="Assets\Scripts\DamperScript.cs" />
      <Compile Include="Assets\Scripts\GameScript.cs" />
      <Compile Include="Assets\Scripts\MainMenuScript.cs" />
+     <Compile Include="Assets\Scripts\MenuButtonAdvancedScript.cs" />
+     <Compile Include="Assets\Scripts\MenuButtonScript.cs" />
      <Compile Include="Assets\Scripts\PauseScript.cs" />
      <Compile Include="Assets\Scripts\ScoreTextScript.cs" />
      <Compile Include="Assets\Scripts\SnakeScript.cs" />
      <Compile Include="Assets\Scripts\SoundScript.cs" />
      <Compile Include="Assets\Scripts\TeleporterScript.cs" />
+     <Compile Include="Assets\Scripts\WheelButtonScript.cs" />
      <Compile Include="Assets\Scripts\WheelHaloScript.cs" />
      <Compile Include="Assets\Scripts\WheelScript.cs" />
      <Compile Include="Assets\iTween\Plugins\iTween.cs" />
