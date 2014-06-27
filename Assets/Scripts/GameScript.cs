@@ -144,9 +144,6 @@ public class GameScript : MonoBehaviour {
 				bonus_wheel.SetActive(false);
 				bonus_wheel_pause = true;
 			}
-
-			// show a banner ad
-			Camera.main.GetComponent<GoogleMobileAdsScript>().ShowBanner();
 		}
 		else
 		{
@@ -223,14 +220,14 @@ public class GameScript : MonoBehaviour {
 
 	public bool isCoinLevel()
 	{
-		if (level > 0) //2
+		if (level > 2)
 			return true;
 		return false;
 	}
 
 	public bool isPickUpLevel()
 	{
-		if (level > 0) //4
+		if (level > 4)
 			return true;
 		return false;
 	}
@@ -674,7 +671,6 @@ public class GameScript : MonoBehaviour {
 		coin.transform.parent = GameObject.Find("Foreground").transform;
 		coin.name = "Coin";
 		coin.SetActive(false);
-		this.displayCoin();
 	}
 
 	// create the bonus pick ups for the level
@@ -684,7 +680,6 @@ public class GameScript : MonoBehaviour {
 		bonus.transform.parent = GameObject.Find("Foreground").transform;
 		bonus.name = "Bonus";
 		bonus.SetActive(false);
-		this.displayBonusPickUp();
 
 		bonus_wheel = Instantiate(bonus_wheel) as GameObject;
 		bonus_wheel.name = "Bonus Wheel";
@@ -744,6 +739,9 @@ public class GameScript : MonoBehaviour {
 	// draws a score board of the current level state
 	void drawScoreBoard()
 	{
+		// show the banner ad
+		Camera.main.GetComponent<GoogleMobileAdsScript>().ShowBanner();
+
 		if (startScoreBoardAnimation && !isPaused())
 		{
 			// only animate once and if not paused
