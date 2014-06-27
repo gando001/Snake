@@ -66,5 +66,8 @@ public class MenuButtonAdvancedScript : MonoBehaviour {
 			game.levelPassed();
 		else if (state == RETRY)
 			game.levelRetry();
+
+		// hide the banner ad
+		Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();
 	}
 }

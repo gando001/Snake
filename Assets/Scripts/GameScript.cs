@@ -144,6 +144,9 @@ public class GameScript : MonoBehaviour {
 				bonus_wheel.SetActive(false);
 				bonus_wheel_pause = true;
 			}
+
+			// show a banner ad
+			Camera.main.GetComponent<GoogleMobileAdsScript>().ShowBanner();
 		}
 		else
 		{

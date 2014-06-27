@@ -21,6 +21,9 @@ public class MenuButtonScript : MonoBehaviour {
 				{
 					// save the game state
 					game.saveGame();
+
+					// hide the banner ad
+					Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();
 					
 					// Reload the level
 					Application.LoadLevel("menu");
@@ -33,6 +36,9 @@ public class MenuButtonScript : MonoBehaviour {
 			{
 				// save the game state
 				game.saveGame();
+
+				// hide the banner ad
+				Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();
 				
 				// load the main menu
 				Application.LoadLevel("menu");
