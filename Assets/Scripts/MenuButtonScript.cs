@@ -3,6 +3,7 @@ using System.Collections;
 
 public class MenuButtonScript : MonoBehaviour {
 
+	public AudioClip button_sound;
 	private GameScript game;
 
 	// Use this for initialization
@@ -22,6 +23,10 @@ public class MenuButtonScript : MonoBehaviour {
 					// save the game state
 					game.saveGame();
 
+					// play the sound
+					if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+						audio.PlayOneShot(button_sound);
+
 					// hide the banner ad
 					Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();
 					
@@ -36,6 +41,10 @@ public class MenuButtonScript : MonoBehaviour {
 			{
 				// save the game state
 				game.saveGame();
+
+				// play the sound
+				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					audio.PlayOneShot(button_sound);
 
 				// hide the banner ad
 				Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();

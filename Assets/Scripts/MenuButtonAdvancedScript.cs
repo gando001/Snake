@@ -8,6 +8,7 @@ public class MenuButtonAdvancedScript : MonoBehaviour {
 	public const int RETRY = 3;
 
 	public Sprite play_sprite, retry_sprite;
+	public AudioClip button_sound;
 
 	private int state;
 	private GameScript game;
@@ -49,7 +50,7 @@ public class MenuButtonAdvancedScript : MonoBehaviour {
 	public void setState(int v)
 	{
 		state = v;
-
+	
 		// alter the sprite
 		if (state == PAUSED || state == WON)
 			GetComponent<SpriteRenderer>().sprite = play_sprite;
@@ -66,6 +67,10 @@ public class MenuButtonAdvancedScript : MonoBehaviour {
 			game.levelPassed();
 		else if (state == RETRY)
 			game.levelRetry();
+
+		// play the sound
+		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+			audio.PlayOneShot(button_sound);
 
 		// hide the banner ad
 		Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();

@@ -126,7 +126,11 @@ public class GameScript : MonoBehaviour {
 		gameOver = v;
 
 		if (gameOver)
+		{
 			startScoreBoardAnimation = true;
+			// show the banner ad
+			Camera.main.GetComponent<GoogleMobileAdsScript>().ShowBanner();
+		}
 	}
 
 	public bool isGameOver(){
@@ -144,12 +148,15 @@ public class GameScript : MonoBehaviour {
 				bonus_wheel.SetActive(false);
 				bonus_wheel_pause = true;
 			}
+
+			// show the banner ad
+			Camera.main.GetComponent<GoogleMobileAdsScript>().ShowBanner();
 		}
 		else
 		{
 			Time.timeScale = 1.0f;
 			menu.SetActive(false);
-
+		
 			if (bonus_wheel_pause) {
 				bonus_wheel.SetActive(true);
 				bonus_wheel_pause = false;
@@ -399,7 +406,7 @@ public class GameScript : MonoBehaviour {
 			scoreBoardCoins = snake.GetComponent<SnakeScript>().getCoinsCollected();
 			
 			// draw the score board
-			drawScoreBoard();
+			drawScoreBoard(); 
 		}
 
 		// HUD
@@ -739,9 +746,6 @@ public class GameScript : MonoBehaviour {
 	// draws a score board of the current level state
 	void drawScoreBoard()
 	{
-		// show the banner ad
-		Camera.main.GetComponent<GoogleMobileAdsScript>().ShowBanner();
-
 		if (startScoreBoardAnimation && !isPaused())
 		{
 			// only animate once and if not paused
@@ -790,9 +794,9 @@ public class GameScript : MonoBehaviour {
 	// animates the component values of the score board
 	void animateScoreBoard()
 	{
-		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , visibleScore+1000, "onupdate" , "animateScoreBoardScore","time" , 1 ));
-		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getLives()+1000, "onupdate" , "animateScoreBoardLives","time" , 1, "delay", 1 ));
-		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getCoinsCollected()+1000, "onupdate" , "animateScoreBoardCoins","time" , 1, "delay", 2 ));
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , visibleScore, "onupdate" , "animateScoreBoardScore","time" , 1 ));
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getLives(), "onupdate" , "animateScoreBoardLives","time" , 1, "delay", 1 ));
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getCoinsCollected(), "onupdate" , "animateScoreBoardCoins","time" , 1, "delay", 2 ));
 	}
 
 	// Changes the currently visible score on the HUD. Called every time iTween changes my

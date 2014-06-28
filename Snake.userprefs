@@ -1,14 +1,13 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GoogleMobileAdsScript.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/GameScript.cs">
     <Files>
-      <File FileName="Assets/Scripts/SnakeScript.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/SnakeScript.cs" Line="733" Column="1" />
       <File FileName="Assets/Scripts/WheelScript.cs" Line="1" Column="1" />
       <File FileName="Assets/Scripts/DamperScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/GameScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/MenuButtonAdvancedScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/MenuButtonScript.cs" Line="1" Column="1" />
-      <File FileName="Assets/Scripts/GoogleMobileAdsScript.cs" Line="50" Column="33" />
+      <File FileName="Assets/Scripts/GameScript.cs" Line="414" Column="68" />
+      <File FileName="Assets/Scripts/MenuButtonAdvancedScript.cs" Line="71" Column="3" />
+      <File FileName="Assets/Scripts/MenuButtonScript.cs" Line="15" Column="3" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -21,7 +20,7 @@
               <Node name="Android" expanded="True" />
             </Node>
             <Node name="Scripts" expanded="True">
-              <Node name="GoogleMobileAdsScript.cs" selected="True" />
+              <Node name="GameScript.cs" selected="True" />
             </Node>
           </Node>
         </State>

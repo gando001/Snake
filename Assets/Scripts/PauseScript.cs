@@ -4,6 +4,8 @@ using System.Collections;
 public class PauseScript : MonoBehaviour {
 
 	public Sprite pause_sprite;
+	public AudioClip button_sound;
+
 	private GameScript game;
 
 	// Use this for initialization
@@ -19,13 +21,25 @@ public class PauseScript : MonoBehaviour {
 			{
 				Touch touch = Input.GetTouch(0);
 				if (touch.phase == TouchPhase.Ended && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
+				{
+					// play the sound
+					if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+						audio.PlayOneShot(button_sound);
+
 					game.setPause(!game.isPaused());
+				}
 			}
 		}
 		else
 		{
 			if(Input.GetMouseButtonUp(0) && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
+			{
+				// play the sound
+				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					audio.PlayOneShot(button_sound);
+
 				game.setPause(!game.isPaused());
+			}
 		}
 
 		if (game.isPaused())

@@ -10,6 +10,13 @@ public class SnakeScript : MonoBehaviour {
 	public Sprite body_corner;
 	public Sprite body_normal;
 
+	// sounds
+	public AudioClip apple_sound;
+	public AudioClip coin_sound;
+	public AudioClip bonus_sound;
+	public AudioClip passed_sound;
+	public AudioClip failed_sound;
+
 	// snake logic
 	private float speed;
 	private int score;
@@ -499,6 +506,10 @@ public class SnakeScript : MonoBehaviour {
 		// determine the other collider
 		if (otherCollider.gameObject.name == "Apple")
 		{	
+			// play the sound
+			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+				audio.PlayOneShot(apple_sound);
+
 			incrementScore(GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue(), false);
 
 			// increment the snake
@@ -506,6 +517,10 @@ public class SnakeScript : MonoBehaviour {
 		}
 		else if (otherCollider.gameObject.name == "Coin")
 		{
+			// play the sound
+			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+				audio.PlayOneShot(coin_sound);
+
 			incrementScore(GameObject.Find("Coin").GetComponent<CoinScript>().getScoreValue(), true);
 
 			coinCollected();
@@ -515,6 +530,10 @@ public class SnakeScript : MonoBehaviour {
 		}
 		else if (otherCollider.gameObject.name == "Bonus")
 		{	
+			// play the sound
+			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+				audio.PlayOneShot(bonus_sound);
+
 			bonus_collected++;
 
 			// remove the bonus pick up
@@ -610,6 +629,10 @@ public class SnakeScript : MonoBehaviour {
 		body_parts++;
 		if (body_parts == body_limit)
 		{
+			// play the sound
+			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+				audio.PlayOneShot(passed_sound);
+
 			// game won the user has passed this level
 			gameScript.setGameOver(true);
 			levelPassed = true;
@@ -707,6 +730,10 @@ public class SnakeScript : MonoBehaviour {
 	// ends the game
 	void endGame()
 	{
+		// play the sound
+		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+			audio.PlayOneShot(failed_sound);
+
 		gameScript.setGameOver(true);
 		levelPassed = false;
 		

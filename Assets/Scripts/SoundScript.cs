@@ -5,6 +5,8 @@ public class SoundScript : MonoBehaviour {
 
 	public Sprite sound_sprite;
 	public Sprite mute_sprite;
+	public AudioClip button_sound;
+
 	private bool sound;
 
 	public void setSoundPlaying(bool v) {
@@ -33,13 +35,25 @@ public class SoundScript : MonoBehaviour {
 			{
 				Touch touch = Input.GetTouch(0);
 				if (touch.phase == TouchPhase.Ended && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
+				{
+					// play the sound
+					if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+						audio.PlayOneShot(button_sound);
+
 					setSoundPlaying(!isSoundPlaying());
+				}
 			}
 		}
 		else
 		{
 			if(Input.GetMouseButtonUp(0) && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
+			{
+				// play the sound
+				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					audio.PlayOneShot(button_sound);
+
 				setSoundPlaying(!isSoundPlaying());
+			}
 		}
 	}
 

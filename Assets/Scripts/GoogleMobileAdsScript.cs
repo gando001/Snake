@@ -13,7 +13,7 @@ public class GoogleMobileAdsScript : MonoBehaviour
 		#if UNITY_EDITOR
 		string adUnitId = "unused";
 		#elif UNITY_ANDROID
-		string adUnitId = "ca-app-pub-6634653121418342/1377846317";
+		string adUnitId = "ca-app-pub-6634653121418342/1377846317"; // change this by getting a new value in admobs to link to this app
 		#elif UNITY_IPHONE
 		string adUnitId = "INSERT_IOS_BANNER_AD_UNIT_ID_HERE";
 		#else
