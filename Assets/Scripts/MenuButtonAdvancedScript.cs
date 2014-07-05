@@ -5,17 +5,20 @@ public class MenuButtonAdvancedScript : MonoBehaviour {
 
 	public const int PAUSED = 1;
 	public const int WON = 2;
-	public const int RETRY = 3;
+	public const int LOST = 3;
+	public const int RETRY = 4;
 
 	public Sprite play_sprite, retry_sprite;
 	public AudioClip button_sound;
 
 	private int state;
 	private GameScript game;
+	private SoundScript sound;
 
 	// Use this for initialization
 	void Start () {
 		game = GameObject.Find("Game").GetComponent<GameScript>();
+		sound = GameObject.Find("Sound").GetComponent<SoundScript>();
 		state = 0;
 	}
 	
@@ -61,16 +64,20 @@ public class MenuButtonAdvancedScript : MonoBehaviour {
 	// executes the relevant functionality based on the buttons current state
 	void buttonHit()
 	{
+		// play the sound
+		if (sound.isSoundPlaying())
+			audio.PlayOneShot(button_sound);
+		
 		if (state == PAUSED)
 			game.setPause(false);
 		else if (state == WON)
 			game.levelPassed();
+		else if (state == LOST)
+			game.levelLost();
 		else if (state == RETRY)
 			game.levelRetry();
 
-		// play the sound
-		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
-			audio.PlayOneShot(button_sound);
+
 
 		// hide the banner ad
 		Camera.main.GetComponent<GoogleMobileAdsScript>().HideBanner();

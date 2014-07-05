@@ -7,9 +7,13 @@ public class WheelScript : MonoBehaviour {
 	public Texture2D spin_again, spin_empty, spin_slow, spin_apple, spin_double_points, spin_half_snake, spin_coin, spin_speed, spin_life, spin_opposite;
 
 	public GameObject damper;
-	private GameObject snake;
 	public GameObject button;
 
+	// sounds
+	public AudioClip positive_sound;
+	public AudioClip negative_sound;
+
+	private GameObject snake;
 	private bool isSwipe;
 	private bool isSpinning;
 	private bool isFinished;
@@ -24,6 +28,8 @@ public class WheelScript : MonoBehaviour {
 	private Texture2D sprite;
 	private string description;
 	private TextMesh item_description;
+	private SoundScript sound;
+	private bool isGoodItem;
 
 	// speed
 	private float speed;
@@ -56,37 +62,41 @@ public class WheelScript : MonoBehaviour {
 	{
 		text = txt;
 		isFinished = true;
+		isGoodItem = true;
 
 		// determine the item
 		if (text == "Spin_again")
 		{
 			sprite = spin_again;
-			description = "You have \nwon \na free spin";
+			description = "you have \nwon \na free spin";
 		}
 		else if (text == "Spin_empty")
 		{
 			sprite = spin_empty;
-			description = "You have \nwon \nnothing";
+			description = "you have \nwon \nnothing";
+			isGoodItem = false;
 		}
 		else if (text == "Spin_slow")
 		{
 			sprite = spin_slow;
-			description = "Reduce \nspeed";
+			description = "speed \ndecrease";
 		}
 		else if (text == "Spin_apple")
 		{
 			sprite = spin_apple;
-			description = "Remove \napples";
+			description = "remove \napples";
+			isGoodItem = false;
 		}
 		else if (text == "Spin_double_points")
 		{
 			sprite = spin_double_points;
-			description = "Double \npoints";
+			description = "double \npoints";
 		}
 		else if (text == "Spin_half_snake")
 		{
 			sprite = spin_half_snake;
-			description = "Cut snake \nin half";
+			description = "cut \nsnake";
+			isGoodItem = false;
 		}
 		else if (text == "Spin_coin")
 		{
@@ -96,22 +106,37 @@ public class WheelScript : MonoBehaviour {
 		else if (text == "Spin_speed")
 		{
 			sprite = spin_speed;
-			description = "Increase \nspeed";
+			description = "speed \nincrease";
+			isGoodItem = false;
 		}
 		else if (text == "Spin_life")
 		{
 			sprite = spin_life;
-			description = "+1 Life";
+			description = "+1 life";
 		}
 		else if (text == "Spin_opposite")
 		{
 			sprite = spin_opposite;
-			description = "Upside down, \ngood luck!";
+			description = "upside \ndown, \ngood luck!";
+			isGoodItem = false;
 		}
 
 		// create a sprite and display its description
 		item.sprite = Sprite.Create(sprite, new Rect(0,0,sprite.width,sprite.height), new Vector2(0.5f,0.5f));
 		item_description.text = description;
+
+		if (isGoodItem)
+		{
+			// play the sound
+			if (sound.isSoundPlaying())
+				audio.PlayOneShot(positive_sound);
+		}
+		else
+		{
+			// play the sound
+			if (sound.isSoundPlaying())
+				audio.PlayOneShot(negative_sound);
+		}
 	}
 
 	public void setLevelSpin() 
@@ -136,6 +161,7 @@ public class WheelScript : MonoBehaviour {
 		game = GameObject.Find("Game").GetComponent<GameScript>();
 		item = GameObject.Find("Item").GetComponent<SpriteRenderer>();
 		item_description = GameObject.Find("Item_description").GetComponent<TextMesh>();
+		sound = GameObject.Find("Sound").GetComponent<SoundScript>();
 	}
 	
 	// Update is called once per frame
@@ -270,14 +296,14 @@ public class WheelScript : MonoBehaviour {
 					snake.GetComponent<SnakeScript>().coinCollected();
 					
 					// alter the description
-					description = "You can \nspin again!";
+					description = "you can \nspin again!";
 					displayCurrentDescription = true; // no continue button required; user has to spin again
 				}
 				else if (text == "Spin_life")
 				{
 					// user won a life so display the button to continue
 					snake.GetComponent<SnakeScript>().addLife();
-					description = "Phew! \nYou got a life!";
+					description = "phew! \nyou got \na life!";
 					showContinue = true;
 					isSwipe = true;
 				}
@@ -287,14 +313,14 @@ public class WheelScript : MonoBehaviour {
 					if (snake.GetComponent<SnakeScript>().getCoinsCollected() > 0)
 					{
 						// user has more coins to try again
-						description = "Bad luck!\nTry again!";
+						description = "bad luck!\ntry again!";
 						displayCurrentDescription = true; // no continue button required; user can spin again
 					}
 					else
 					{
 						// user has lost the game
 						// alter the description and show a button
-						description = "You lose!";
+						description = "you lose!";
 						showContinue = true;
 						isSwipe = true;
 					}
@@ -371,9 +397,9 @@ public class WheelScript : MonoBehaviour {
 		else
 		{
 			// create the content
-			description = "Spin the \nwheel!";
+			description = "spin the \nwheel!";
 			if (isTryingToGetLife && isFirstSpin)
-				description =  "Use your \ncoins to \nspin the wheel \nfor a life!"; // this is only required when spinning for a life the first time
+				description =  "use your \ncoins to \nspin for \na life!"; // this is only required when spinning for a life the first time
 			
 			item.sprite = null;
 			item_description.text = description;

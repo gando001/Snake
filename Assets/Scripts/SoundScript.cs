@@ -37,7 +37,7 @@ public class SoundScript : MonoBehaviour {
 				if (touch.phase == TouchPhase.Ended && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
 				{
 					// play the sound
-					if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					if (isSoundPlaying())
 						audio.PlayOneShot(button_sound);
 
 					setSoundPlaying(!isSoundPlaying());
@@ -49,7 +49,7 @@ public class SoundScript : MonoBehaviour {
 			if(Input.GetMouseButtonUp(0) && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
 			{
 				// play the sound
-				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+				if (isSoundPlaying())
 					audio.PlayOneShot(button_sound);
 
 				setSoundPlaying(!isSoundPlaying());

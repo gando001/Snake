@@ -13,14 +13,11 @@ public class SnakeScript : MonoBehaviour {
 	// sounds
 	public AudioClip apple_sound;
 	public AudioClip coin_sound;
-	public AudioClip bonus_sound;
-	public AudioClip passed_sound;
-	public AudioClip failed_sound;
+	public AudioClip teleporter_sound;
 
 	// snake logic
 	private float speed;
 	private int score;
-	private int body_limit;
 	private int body_parts;
 	private bool levelPassed;
 	private bool left;
@@ -37,6 +34,7 @@ public class SnakeScript : MonoBehaviour {
 	private int direction;
 	private int tail_direction;
 	private bool started;
+	private bool getUserInput;
 
 	// coins
 	private int number_of_coins;
@@ -205,7 +203,7 @@ public class SnakeScript : MonoBehaviour {
 	public void slowmoSnake()
 	{
 		originalSpeed = speed;
-		setSpeed(Mathf.Min(0.28f, originalSpeed+0.05f));
+		setSpeed(Mathf.Min(GameScript.MIN_SPEED, originalSpeed+0.05f));
 
 		bonusSlow = true;
 		hasBonusItem = true;
@@ -218,7 +216,7 @@ public class SnakeScript : MonoBehaviour {
 	public void speedSnake()
 	{
 		originalSpeed = speed;
-		setSpeed(Mathf.Max(0.0f, originalSpeed-0.05f));
+		setSpeed(Mathf.Max(GameScript.MAX_SPEED, originalSpeed-0.05f));
 
 		bonusSpeed = true;
 		hasBonusItem = true;
@@ -287,6 +285,17 @@ public class SnakeScript : MonoBehaviour {
 
 	public void setStarted(bool v) {
 		started = v;
+
+		if (started)
+		{
+			// hide the message
+			GameObject.Find("StartMessage").transform.position = new Vector3(0,0,-20);
+		}
+		else
+		{
+			// show the message 
+			GameObject.Find("StartMessage").transform.position = new Vector3(0,0,0);
+		}
 	}
 	
 	
@@ -296,11 +305,11 @@ public class SnakeScript : MonoBehaviour {
 	void Start () 
 	{
 		score = 0;
-		body_limit = 30;
 		body_parts = 0;
 		lastUpdate = 0;
 		bodies = new ArrayList();
 		started = false;
+		getUserInput = true;
 
 		// bonus
 		bonusWheelShowing = false;
@@ -325,117 +334,117 @@ public class SnakeScript : MonoBehaviour {
 			setBonusBodyIndex();
 		}
 	}
-	
-	// Update is called once per frame
-	void Update () 
+
+	// FixedUpdate() is called at every fixed framerate frame. 
+	// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
+	void FixedUpdate () 
 	{
-		// user input
-		if (GameScript.REAL_DEVICE)
+		if (getUserInput)
 		{
-			if (Input.touchCount > 0 && !isBonusWheelShowing()) 
+			// user input
+			if (GameScript.REAL_DEVICE)
 			{
-				Touch touch = Input.GetTouch(0);
-
-				// user input is swiping the screen
-				if (touch.phase == TouchPhase.Moved)
+				if (Input.touchCount > 0 && !isBonusWheelShowing()) 
 				{
-					Vector2 deltaPostion = Input.GetTouch(0).deltaPosition;
+					Touch touch = Input.GetTouch(0);
 
+					// user input is swiping the screen
+					if (touch.phase == TouchPhase.Moved)
+					{
+						Vector2 deltaPostion = Input.GetTouch(0).deltaPosition;
+
+						// determine the direction the user wants to go
+						float dx = deltaPostion.x;
+						float dy = deltaPostion.y;
+						float delta = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+
+						if (delta == Mathf.Abs(dx))
+						{
+							// user chose a horizontal movement
+							if (!right && dx < 0)
+							{
+								// left
+								setLeft();
+							}
+							else if (!left && dx > 0)
+							{
+								// right
+								setRight();
+							}
+						}
+						else
+						{
+							// user chose a vertical movement
+							if (!down && dy > 0)
+							{
+								// up
+								setUp();
+							}
+							else if (!up && dy < 0)
+							{
+								// down	
+								setDown();
+							}
+						}
+
+						// start to move the snake
+						if (!started)
+							setStarted(true);
+					}
+				}
+			}
+			else
+			{
+				if (!isBonusWheelShowing())
+				{
+					// Use for testing in Unity not on device
+					// get the keyboard values and calculate the movement
+					float inputX = Input.GetAxis ("Horizontal");
+					float inputY = Input.GetAxis ("Vertical");
+					
 					// determine the direction the user wants to go
-					float dx = deltaPostion.x;
-					float dy = deltaPostion.y;
-					float delta = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
-
-					if (delta == Mathf.Abs(dx))
+					// need to remove the going left then able to go right and top -> bottom
+					if (!right && inputX < 0)
 					{
-						// user chose a horizontal movement
-						if (!right && dx < 0)
-						{
-							// left
-							setLeft();
-						}
-						else if (!left && dx > 0)
-						{
-							// right
-							setRight();
-						}
+						// left
+						setLeft();	
+						
+						if (!started)
+							setStarted(true);
 					}
-					else
+					else if (!left && inputX > 0)
 					{
-						// user chose a vertical movement
-						if (!down && dy > 0)
-						{
-							// up
-							setUp();
-						}
-						else if (!up && dy < 0)
-						{
-							// down	
-							setDown();
-						}
-					}
+						// right
+						setRight();
 
-					// start to move the snake
-					if (!started)
-						started = true;
-				}
-			}
-		}
-		else
-		{
-			if (!isBonusWheelShowing())
-			{
-				// Use for testing in Unity not on device
-				// get the keyboard values and calculate the movement
-				float inputX = Input.GetAxis ("Horizontal");
-				float inputY = Input.GetAxis ("Vertical");
+						if (!started)
+							setStarted(true);
+					}
+					else if (!down && inputY > 0)
+					{
+						// up
+						setUp();
 				
-				// determine the direction the user wants to go
-				// need to remove the going left then able to go right and top -> bottom
-				if (!right && inputX < 0)
-				{
-					// left
-					setLeft();	
-
-					if (!started)
-						started = true;
-				}
-				else if (!left && inputX > 0)
-				{
-					// right
-					setRight();
-
-					if (!started)
-						started = true;
-				}
-				else if (!down && inputY > 0)
-				{
-					// up
-					setUp();
-
-					if (!started)
-						started = true;
-				}
-				else if (!up && inputY < 0)
-				{
-					// down	
-					setDown();
-
-					if (!started)
-						started = true;
+						if (!started)
+							setStarted(true);
+					}
+					else if (!up && inputY < 0)
+					{
+						// down	
+						setDown();
+				
+						if (!started)
+							setStarted(true);
+					}
 				}
 			}
 		}
-	}
-
-	void FixedUpdate(){
 	
-		// FixedUpdate() is called at every fixed framerate frame. 
-		// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
-
 		// update when it is time to and the game isn't over
 		if (Time.time - lastUpdate >= speed && !gameScript.isGameOver() && !isBonusWheelShowing() && started)
 		{	
+			getUserInput = true;
+
 			// continue in the same direction
 			if (left)
 				col--;
@@ -506,12 +515,16 @@ public class SnakeScript : MonoBehaviour {
 		// determine the other collider
 		if (otherCollider.gameObject.name == "Apple")
 		{	
+			// move the apple here to stop it from colliding with the snake
+			// when the level is complete
+			gameScript.moveApple();
+
 			// play the sound
 			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
 				audio.PlayOneShot(apple_sound);
 
 			incrementScore(GameObject.Find("Apple").GetComponent<AppleScript>().getScoreValue(), false);
-
+		
 			// increment the snake
 			incrementSnake();
 		}
@@ -530,10 +543,6 @@ public class SnakeScript : MonoBehaviour {
 		}
 		else if (otherCollider.gameObject.name == "Bonus")
 		{	
-			// play the sound
-			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
-				audio.PlayOneShot(bonus_sound);
-
 			bonus_collected++;
 
 			// remove the bonus pick up
@@ -550,6 +559,10 @@ public class SnakeScript : MonoBehaviour {
 			if (direction == otherCollider.gameObject.GetComponent<TeleporterScript>().getFacingDirection())
 			{
 				// the snake is entering the correct face of the teleporter
+
+				// play the sound
+				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					audio.PlayOneShot(teleporter_sound);
 
 				// head is on the teleporter so update the grid to set it back to a teleporter
 				gameScript.updateGrid(row, col, GameScript.TELEPORTER);
@@ -627,12 +640,8 @@ public class SnakeScript : MonoBehaviour {
 	void incrementSnake()
 	{
 		body_parts++;
-		if (body_parts == body_limit)
+		if (body_parts == GameScript.BODY_LIMIT)
 		{
-			// play the sound
-			if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
-				audio.PlayOneShot(passed_sound);
-
 			// game won the user has passed this level
 			gameScript.setGameOver(true);
 			levelPassed = true;
@@ -641,7 +650,6 @@ public class SnakeScript : MonoBehaviour {
 		{
 			// add a new body to the snake
 			eaten = true;
-			gameScript.moveApple();
 			
 			// check if its time to show the coin
 			if (body_parts == coin_body_index)
@@ -730,10 +738,6 @@ public class SnakeScript : MonoBehaviour {
 	// ends the game
 	void endGame()
 	{
-		// play the sound
-		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
-			audio.PlayOneShot(failed_sound);
-
 		gameScript.setGameOver(true);
 		levelPassed = false;
 		
@@ -744,13 +748,13 @@ public class SnakeScript : MonoBehaviour {
 	// randomly choose when to display the coins based on the snake body length
 	void setCoinBodyIndex()
 	{
-		coin_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
+		coin_body_index = Random.Range(Mathf.Max(10,body_parts),GameScript.BODY_LIMIT+1);
 	}
 
 	// randomly choose when to display the bonus based on the snake body length
 	void setBonusBodyIndex()
 	{
-		bonus_body_index = Random.Range(Mathf.Max(10,body_parts),body_limit+1);
+		bonus_body_index = Random.Range(Mathf.Max(10,body_parts),GameScript.BODY_LIMIT+1);
 	}
 
 	int getCorner(int currentDirection, int newDirection)
@@ -786,7 +790,7 @@ public class SnakeScript : MonoBehaviour {
 		if (bonusDoublePoints)
 			v = v*2;
 		score += v;
-
+	
 		// animate the HUD score
 		gameScript.animateHUDScore();
 
@@ -811,6 +815,7 @@ public class SnakeScript : MonoBehaviour {
 		down = false;
 		up = false;
 		direction = GameScript.LEFT;
+		getUserInput = false;
 	}
 
 	void setRight()
@@ -820,6 +825,7 @@ public class SnakeScript : MonoBehaviour {
 		down = false;
 		up = false;
 		direction = GameScript.RIGHT;
+		getUserInput = false;
 	}
 
 	void setUp()
@@ -829,6 +835,7 @@ public class SnakeScript : MonoBehaviour {
 		down = false;
 		up = true;
 		direction = GameScript.UP;
+		getUserInput = false;
 	}
 
 	void setDown()
@@ -838,6 +845,7 @@ public class SnakeScript : MonoBehaviour {
 		down = true;
 		up = false;
 		direction = GameScript.DOWN;
+		getUserInput = false;
 	}
 
 	void BonusCountdown () 

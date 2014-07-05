@@ -19,6 +19,12 @@ public class GameScript : MonoBehaviour {
 	public GameObject foreground;
 	public GameObject middleground;
 
+	// sounds
+	public AudioClip bonus_sound;
+	public AudioClip level_pass;
+	public AudioClip level_fail;
+	public AudioClip button_sound;
+
 	public const bool REAL_DEVICE = false;
 
 	// level values
@@ -39,12 +45,17 @@ public class GameScript : MonoBehaviour {
 	private const string SPEED = "SPEED";
 	private const string COINS = "COINS";
 	private const string LIVES = "LIVES";
+	private const string SOUND = "SOUND";
 
 	// game logic
-	private int[,] grid; 
-	private ArrayList empty_spaces;
 	private const int rows = 13;
 	private const int cols = 25;
+	public const float MIN_SPEED = 0.25f;
+	public const float MAX_SPEED = 0.0f;
+	public const int BODY_LIMIT = 30;
+
+	private int[,] grid; 
+	private ArrayList empty_spaces;
 	private int level;
 	private int direction;
 	private bool userWin;
@@ -168,7 +179,6 @@ public class GameScript : MonoBehaviour {
 		return paused;
 	}
 
-
 	// displays the coin in the level
 	public void displayCoin()
 	{
@@ -241,6 +251,10 @@ public class GameScript : MonoBehaviour {
 
 	public void displayBonusWheel()
 	{
+		// play the sound
+		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+			audio.PlayOneShot(bonus_sound);
+
 		// freeze the snake
 		snake.GetComponent<SnakeScript>().setBonusWheelShowing(true);
 		
@@ -261,6 +275,10 @@ public class GameScript : MonoBehaviour {
 
 	public void hideBonusWheel() 
 	{
+		// play the sound
+		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+			audio.PlayOneShot(button_sound);
+
 		bonus_wheel.SetActive(false);
 
 		// display the background
@@ -284,12 +302,12 @@ public class GameScript : MonoBehaviour {
 
 	public void levelPassed()
 	{
-		// increment the level
-		level++;
-		
 		// increase the speed every second level
 		if (level % 2 == 0)
 			currentSpeed -= 0.01f;
+
+		// increment the level
+		level++;
 
 		// save the game state
 		saveGame();
@@ -311,6 +329,18 @@ public class GameScript : MonoBehaviour {
 		Application.LoadLevel("level");
 	}
 
+	public void levelLost()
+	{
+		// set up the game state for saving
+		userWin = false; 
+		
+		// save the game state
+		saveGame();
+		
+		// Reload the level
+		Application.LoadLevel("level");
+	}
+	
 
 
 	
@@ -429,8 +459,8 @@ public class GameScript : MonoBehaviour {
 			// user pressed the go back button so save the game state
 			saveGame();
 
-			// load the main menu
-			Application.LoadLevel("menu");
+			// quit the app
+			Application.Quit();
 		}
 	}   
 
@@ -711,6 +741,12 @@ public class GameScript : MonoBehaviour {
 		currentSpeed = PlayerPrefs.GetFloat(SPEED);
 		currentCoins = PlayerPrefs.GetInt(COINS);
 		currentLives = PlayerPrefs.GetInt(LIVES);
+		print (currentSpeed);
+		// load the sound setting
+		if (PlayerPrefs.GetInt(SOUND) == 1)
+			GameObject.Find("Sound").GetComponent<SoundScript>().setSoundPlaying(true);
+		else
+			GameObject.Find("Sound").GetComponent<SoundScript>().setSoundPlaying(false);
 	
 		visibleScore = currentScore;
 	}
@@ -731,16 +767,23 @@ public class GameScript : MonoBehaviour {
 		{
 			setUpInitialGameState();
 		}
-	}
 
+		// save the sound setting
+		if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+			PlayerPrefs.SetInt(SOUND, 1);
+		else
+			PlayerPrefs.SetInt(SOUND, 0);
+	}
+	
 	// sets up a default game with the default values
 	void setUpInitialGameState()
 	{
 		PlayerPrefs.SetInt(LEVEL, 1);
 		PlayerPrefs.SetInt(SCORE, 0);
-		PlayerPrefs.SetFloat(SPEED, 0.28f);
+		PlayerPrefs.SetFloat(SPEED, MIN_SPEED);
 		PlayerPrefs.SetInt(COINS, 0);
 		PlayerPrefs.SetInt(LIVES, 0);
+		PlayerPrefs.SetInt(SOUND, 1);
 	}
 	
 	// draws a score board of the current level state
@@ -751,6 +794,19 @@ public class GameScript : MonoBehaviour {
 			// only animate once and if not paused
 			animateScoreBoard();
 			startScoreBoardAnimation = false;
+
+			if (userWin)
+			{
+				// play the sound
+				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					audio.PlayOneShot(level_pass);
+			}
+			else
+			{
+				// play the sound
+				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					audio.PlayOneShot(level_fail);
+			}
 		}
 
 		menu.SetActive(true);
@@ -768,7 +824,7 @@ public class GameScript : MonoBehaviour {
 		{
 			// game must be over here
 			if (userWin)
-			{
+			{	
 				// user wins the level
 				menu_button.GetComponent<MenuButtonAdvancedScript>().setState(MenuButtonAdvancedScript.WON);
 			}
@@ -777,15 +833,13 @@ public class GameScript : MonoBehaviour {
 				// user loses the level
 				if (snake.GetComponent<SnakeScript>().getLives() > 0)
 				{
-					// user has lives to retry
+					// user has lives to retry this level
 					menu_button.GetComponent<MenuButtonAdvancedScript>().setState(MenuButtonAdvancedScript.RETRY);
 				}
 				else
 				{
 					// user loses the level
-					menu_button.SetActive(false);
-					Vector3 pos = GameObject.Find("Menu_button").transform.position;
-					GameObject.Find("Menu_button").transform.position = new Vector3(0, pos.y, pos.z);
+					menu_button.GetComponent<MenuButtonAdvancedScript>().setState(MenuButtonAdvancedScript.LOST);
 				}
 			}
 		}
@@ -794,7 +848,7 @@ public class GameScript : MonoBehaviour {
 	// animates the component values of the score board
 	void animateScoreBoard()
 	{
-		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , visibleScore, "onupdate" , "animateScoreBoardScore","time" , 1 ));
+		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getScore(), "onupdate" , "animateScoreBoardScore","time" , 1 ));
 		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getLives(), "onupdate" , "animateScoreBoardLives","time" , 1, "delay", 1 ));
 		iTween.ValueTo (gameObject, iTween.Hash( "from", 0,  "to" , snake.GetComponent<SnakeScript>().getCoinsCollected(), "onupdate" , "animateScoreBoardCoins","time" , 1, "delay", 2 ));
 	}

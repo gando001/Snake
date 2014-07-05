@@ -7,10 +7,12 @@ public class PauseScript : MonoBehaviour {
 	public AudioClip button_sound;
 
 	private GameScript game;
+	private SoundScript sound;
 
 	// Use this for initialization
 	void Start () {
 		game = GameObject.Find("Game").GetComponent<GameScript>();
+		sound = GameObject.Find("Sound").GetComponent<SoundScript>();
 	}
 	
 	void Update()
@@ -23,7 +25,7 @@ public class PauseScript : MonoBehaviour {
 				if (touch.phase == TouchPhase.Ended && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
 				{
 					// play the sound
-					if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+					if (sound.isSoundPlaying())
 						audio.PlayOneShot(button_sound);
 
 					game.setPause(!game.isPaused());
@@ -35,7 +37,7 @@ public class PauseScript : MonoBehaviour {
 			if(Input.GetMouseButtonUp(0) && isTouched(Camera.main.ScreenToWorldPoint(Input.mousePosition)))
 			{
 				// play the sound
-				if (GameObject.Find("Sound").GetComponent<SoundScript>().isSoundPlaying())
+				if (sound.isSoundPlaying())
 					audio.PlayOneShot(button_sound);
 
 				game.setPause(!game.isPaused());
