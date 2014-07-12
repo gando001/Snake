@@ -741,7 +741,7 @@ public class GameScript : MonoBehaviour {
 		currentSpeed = PlayerPrefs.GetFloat(SPEED);
 		currentCoins = PlayerPrefs.GetInt(COINS);
 		currentLives = PlayerPrefs.GetInt(LIVES);
-		print (currentSpeed);
+
 		// load the sound setting
 		if (PlayerPrefs.GetInt(SOUND) == 1)
 			GameObject.Find("Sound").GetComponent<SoundScript>().setSoundPlaying(true);
@@ -749,6 +749,7 @@ public class GameScript : MonoBehaviour {
 			GameObject.Find("Sound").GetComponent<SoundScript>().setSoundPlaying(false);
 	
 		visibleScore = currentScore;
+		level = 36;
 	}
 	
 	// saves the game state 
