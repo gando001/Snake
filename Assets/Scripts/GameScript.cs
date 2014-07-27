@@ -53,6 +53,9 @@ public class GameScript : MonoBehaviour {
 	public const float MIN_SPEED = 0.25f;
 	public const float MAX_SPEED = 0.0f;
 	public const int BODY_LIMIT = 30;
+	public const int MAX_LEVEL = 50;
+	public const int MIN_COIN_LEVEL = 2;
+	public const int MIN_BONUS_LEVEL = 4;
 
 	private int[,] grid; 
 	private ArrayList empty_spaces;
@@ -237,14 +240,14 @@ public class GameScript : MonoBehaviour {
 
 	public bool isCoinLevel()
 	{
-		if (level > 2)
+		if (level > MIN_COIN_LEVEL)
 			return true;
 		return false;
 	}
 
 	public bool isPickUpLevel()
 	{
-		if (level > 4)
+		if (level > MIN_BONUS_LEVEL)
 			return true;
 		return false;
 	}
@@ -308,7 +311,7 @@ public class GameScript : MonoBehaviour {
 
 		// increment the level
 		level++;
-		if (level > 50)
+		if (level > MAX_LEVEL)
 			setUpInitialGameState();
 
 		// save the game state
