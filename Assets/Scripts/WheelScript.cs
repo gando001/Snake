@@ -174,6 +174,12 @@ public class WheelScript : MonoBehaviour {
 	// handles all of the functionality of user input and initiating the spin
 	void getUserInput()
 	{
+		/*if (!GameScript.REAL_DEVICE && Input.GetKeyDown("space"))
+		{
+			print ("Screenshot");
+			Application.CaptureScreenshot("/Users/Kunals-iMac/Dropbox/Apps/Android/SIKK Snake/Market Assets/Tablet/wheel.png");
+		}*/
+
 		if (GameScript.REAL_DEVICE)
 		{
 			if (!isSwipe && Time.timeScale != 0)

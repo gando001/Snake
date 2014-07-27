@@ -25,7 +25,7 @@ public class GameScript : MonoBehaviour {
 	public AudioClip level_fail;
 	public AudioClip button_sound;
 
-	public const bool REAL_DEVICE = false;
+	public const bool REAL_DEVICE = true;
 
 	// level values
 	public const int EMPTY = 0;
@@ -308,6 +308,8 @@ public class GameScript : MonoBehaviour {
 
 		// increment the level
 		level++;
+		if (level > 50)
+			setUpInitialGameState();
 
 		// save the game state
 		saveGame();
@@ -456,11 +458,11 @@ public class GameScript : MonoBehaviour {
 
 		if (Input.GetKeyDown(KeyCode.Escape))
 		{
-			// user pressed the go back button so save the game state
+			// user pressed the go back button
+			setPause(true);
+			
+			// save the game state
 			saveGame();
-
-			// quit the app
-			Application.Quit();
 		}
 	}   
 
@@ -749,7 +751,6 @@ public class GameScript : MonoBehaviour {
 			GameObject.Find("Sound").GetComponent<SoundScript>().setSoundPlaying(false);
 	
 		visibleScore = currentScore;
-		level = 36;
 	}
 	
 	// saves the game state 

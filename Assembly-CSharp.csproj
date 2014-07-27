@@ -101,6 +101,7 @@
      <None Include="Assets\Resources\Levels\level_17.txt" />
      <None Include="Assets\Resources\Levels\level_21.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\color\wallet_secondary_text_holo_dark.xml" />
+     <None Include="Assets\Resources\Levels\level_39.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-ca\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-sv\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-vi\common_strings.xml" />
@@ -118,12 +119,14 @@
      <None Include="Assets\Resources\Levels\level_6.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-tr\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-hr\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_41.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-hy-rAM\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-hi\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_10.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-en-rGB\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-hr\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_9.txt" />
+     <None Include="Assets\Resources\Levels\level_44.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-da\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_28.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-nb\common_strings.xml" />
@@ -135,8 +138,10 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-ja\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-fr-rCA\common_strings.xml" />
      <None Include="Assets\Resources\Levels\level_7.txt" />
+     <None Include="Assets\Resources\Levels\level_50.txt" />
      <None Include="Assets\Resources\Levels\level_29.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-et-rEE\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_48.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-cs\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-tl\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-fa\common_strings.xml" />
@@ -149,10 +154,13 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-ro\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_1.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-mn-rMN\auth_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_37.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-fi\auth_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_38.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-ka-rGE\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_20.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\proguard.txt" />
+     <None Include="Assets\Resources\Levels\level_46.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-fa\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-el\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-pl\common_strings.xml" />
@@ -160,6 +168,7 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-nl\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-hu\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-lo-rLA\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_45.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-it\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_24.txt" />
      <None Include="Assets\Resources\Levels\level_35.txt" />
@@ -190,6 +199,7 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-zu\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-zh-rCN\common_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_40.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-in\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values\wallet_styles.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-fr\common_strings.xml" />
@@ -203,9 +213,11 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-pt-rPT\common_strings.xml" />
      <None Include="Assets\Resources\Levels\level_14.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-pt-rBR\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_43.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-es\common_strings.xml" />
      <None Include="Assets\Resources\Levels\level_32.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-hy-rAM\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_49.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-zh-rTW\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_13.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-ko\auth_strings.xml" />
@@ -243,6 +255,7 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-sv\auth_strings.xml" />
      <None Include="Assets\Resources\Levels\level_2.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-sr\auth_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_42.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-km-rKH\common_strings.xml" />
      <None Include="Assets\Resources\Levels\level_4.txt" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-tr\common_strings.xml" />
@@ -261,6 +274,7 @@
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-bg\auth_strings.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values\wallet_colors.xml" />
      <None Include="Assets\Plugins\Android\google-play-services_lib\res\values-lt\common_strings.xml" />
+     <None Include="Assets\Resources\Levels\level_47.txt" />
      <None Include="Assets\Resources\Levels\level_26.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

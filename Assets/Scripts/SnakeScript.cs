@@ -339,6 +339,12 @@ public class SnakeScript : MonoBehaviour {
 	// You should use this method over Update() when dealing with physics ("RigidBody" and forces).
 	void FixedUpdate () 
 	{
+		/*if (!GameScript.REAL_DEVICE && Input.GetKeyDown("space"))
+		{
+			print ("Screenshot");
+			Application.CaptureScreenshot("/Users/Kunals-iMac/Dropbox/Apps/Android/SIKK Snake/Market Assets/Tablet/screenshot.png");
+		}*/
+
 		if (getUserInput)
 		{
 			// user input

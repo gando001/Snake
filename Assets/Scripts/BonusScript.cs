@@ -22,8 +22,8 @@ public class BonusScript : MonoBehaviour {
 		if (seconds == 0)
 			this.gameObject.SetActive(false);
 		
-		//if (seconds > 0)
-			//seconds--;
+		if (seconds > 0)
+			seconds--;
 
 		if (seconds < TTL/4)
 		{
